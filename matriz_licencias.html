@@ -1092,6 +1092,8 @@ function showStats(appsLoaded,colsAll){
 
   document.getElementById('statsrow').style.display='grid';
   document.getElementById('btnSnap').style.display='inline-block';
+  // Guardar lista de apps en localStorage para módulo de costos
+  try { localStorage.setItem('gobernanza_apps', JSON.stringify(colsGoogle.concat(allApps))); } catch(e){}
 
   // App bars
   var bars=document.getElementById('appbars'); bars.innerHTML='';
@@ -1713,6 +1715,10 @@ function closeCost(){
 function buildCostAppList(){
   var list = document.getElementById('costAppList');
   var colsAll2 = colsGoogle.concat(allApps);
+  // Fallback: usar apps guardadas en localStorage si la matriz no se ha generado en esta sesión
+  if(!colsAll2.length){
+    try { colsAll2 = JSON.parse(localStorage.getItem('gobernanza_apps')||'[]'); } catch(e){ colsAll2=[]; }
+  }
   if(!colsAll2.length){
     list.innerHTML='<div style="color:#64748b;font-size:13px;padding:12px">Primero genera la matriz para ver las apps disponibles.</div>';
     return;
@@ -1766,7 +1772,7 @@ function getCostForApp(app){
   var cfg = appCosts[app];
   if(!cfg || !cfg.value) return null;
   var all  = dfInt.concat(dfExt);
-  var SUSP = {'inactive':1,'inactivo':1,'suspended':1,'suspendido':1};
+  var SUSP = {'inactive':1,'inactivo':1,'suspended':1,'suspendido':1,'inactiva':1,'disabled':1,'deactivated':1};
   var totalUsers    = all.filter(function(r){ return r[app]==='X'; }).length;
   var activosUsers  = all.filter(function(r){ return r[app]==='X' && !SUSP[String(r['Estado']||'').toLowerCase().trim()]; }).length;
   var inactivosUsers= totalUsers - activosUsers;
@@ -1777,21 +1783,27 @@ function getCostForApp(app){
     // total factura / usuarios totales
     pricePerUser = totalUsers > 0 ? cfg.value / totalUsers : 0;
   }
+  // Si no hay datos de matriz en memoria, mostrar solo el precio configurado
+  var sinDatos = all.length === 0;
   return {
     app: app,
-    totalUsers: totalUsers,
-    activosUsers: activosUsers,
-    inactivosUsers: inactivosUsers,
+    totalUsers: sinDatos ? '—' : totalUsers,
+    activosUsers: sinDatos ? '—' : activosUsers,
+    inactivosUsers: sinDatos ? '—' : inactivosUsers,
     pricePerUser: pricePerUser,
-    costActivos:   activosUsers  * pricePerUser,
-    costInactivos: inactivosUsers * pricePerUser,
-    costTotal:     totalUsers    * pricePerUser,
-    currency: cfg.currency||'USD'
+    costActivos:   sinDatos ? null : activosUsers  * pricePerUser,
+    costInactivos: sinDatos ? null : inactivosUsers * pricePerUser,
+    costTotal:     sinDatos ? null : totalUsers    * pricePerUser,
+    currency: cfg.currency||'USD',
+    sinDatos: sinDatos
   };
 }
 
 function renderCostTable(){
   var colsAll2 = colsGoogle.concat(allApps);
+  if(!colsAll2.length){
+    try { colsAll2 = JSON.parse(localStorage.getItem('gobernanza_apps')||'[]'); } catch(e){ colsAll2=[]; }
+  }
   var rows = colsAll2.map(getCostForApp).filter(Boolean);
   var body = document.getElementById('costTableBody');
   var wrap = document.getElementById('costSummaryWrap');
