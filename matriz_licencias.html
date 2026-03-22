@@ -488,6 +488,25 @@ var CONTRASENA_VALIDA = "Xertica2026";
       <div class="kpi-card"><div class="kpi-label">% Desperdicio</div><div class="kpi-val" style="color:#f59e0b" id="kpiPct">0%</div><div class="kpi-sub">del presupuesto total</div></div>
     </div>
 
+    <!-- Subir factura PDF -->
+    <div class="cost-card" style="margin-bottom:24px;border-color:rgba(245,158,11,.3)">
+      <h4 style="color:#f59e0b">📄 Importar desde Factura PDF</h4>
+      <p style="font-size:12px;color:#64748b;margin-bottom:14px">Sube la factura de cualquier app (Zoom, Docusign, Salesforce, etc.) y la IA extrae automáticamente los costos y los aplica al módulo.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;background:#1a2235;border:1px dashed rgba(245,158,11,.4);color:#f59e0b;font-size:12px;font-weight:600;padding:10px 18px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(245,158,11,.08)'" onmouseout="this.style.background='#1a2235'">
+          📎 Seleccionar factura PDF
+          <input type="file" accept=".pdf" id="fileInvoice" style="display:none" onchange="processInvoicePDF(this)">
+        </label>
+        <div id="invoiceStatus" style="font-size:12px;color:#64748b"></div>
+      </div>
+      <!-- Resultado del análisis -->
+      <div id="invoiceResult" style="display:none;margin-top:16px;background:#0f1928;border:1px solid #1f2d42;border-radius:8px;padding:16px">
+        <div style="font-size:11px;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" id="invoiceTitle">Análisis de factura</div>
+        <div id="invoiceBreakdown"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap" id="invoiceActions"></div>
+      </div>
+    </div>
+
     <!-- Configurar costos por app -->
     <div class="cost-card" style="margin-bottom:24px">
       <h4>⚙️ Configurar precio por aplicación</h4>
@@ -1513,6 +1532,163 @@ var appCosts = {}; // { appName: { type:'per_user'|'total', value: number, curre
 
 function loadCosts(){
   try { appCosts = JSON.parse(localStorage.getItem('gobernanza_costs')||'{}'); } catch(e){ appCosts={}; }
+}
+
+// ── INVOICE PDF PROCESSOR ──
+async function processInvoicePDF(input){
+  var file = input.files[0];
+  if(!file) return;
+  var status = document.getElementById('invoiceStatus');
+  var result = document.getElementById('invoiceResult');
+  var breakdown = document.getElementById('invoiceBreakdown');
+  var actions = document.getElementById('invoiceActions');
+  var title = document.getElementById('invoiceTitle');
+
+  status.innerHTML = '<span style="color:#f59e0b">⏳ Leyendo factura con IA...</span>';
+  result.style.display = 'none';
+
+  // Convert PDF to base64
+  var base64 = await new Promise(function(res, rej){
+    var reader = new FileReader();
+    reader.onload = function(e){ res(e.target.result.split(',')[1]); };
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+
+  try {
+    var invoicePrompt = 'Analiza esta factura y extrae SOLO un JSON con esta estructura exacta, sin texto adicional ni markdown: '
+      + '{"proveedor":"nombre app","fecha":"fecha","moneda":"USD","subtotal":0,"total_con_impuestos":0,'
+      + '"productos":[{"nombre":"producto","cantidad":1,"precio_unitario":0,"subtotal":0}],'
+      + '"recomendacion_costo":{"tipo":"per_user o total","valor":0,"explicacion":"razon"}}';
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'document',
+              source: { type: 'base64', media_type: 'application/pdf', data: base64 }
+            },
+            {
+              type: 'text',
+              text: invoicePrompt
+            }
+          ]
+        }]
+      })
+    });
+
+    var data = await resp.json();
+    var text = data.content && data.content[0] ? data.content[0].text : '';
+    // Clean markdown if present
+    text = text.replace(/```json|```/g, '').trim();
+    var invoice;
+    try { invoice = JSON.parse(text); } catch(e){ throw new Error('No se pudo parsear la respuesta de IA'); }
+
+    // Render breakdown
+    title.textContent = '📄 ' + invoice.proveedor + ' — ' + invoice.fecha;
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px">'
+      +'<div style="background:#1a2235;border-radius:6px;padding:10px"><div style="font-size:10px;color:#64748b;margin-bottom:4px">SUBTOTAL</div><div style="font-size:18px;font-weight:700;color:#e2e8f0;font-family:monospace">'+invoice.moneda+' '+invoice.subtotal.toLocaleString('en-US',{minimumFractionDigits:2})+'</div></div>'
+      +'<div style="background:#1a2235;border-radius:6px;padding:10px"><div style="font-size:10px;color:#64748b;margin-bottom:4px">TOTAL CON IMPUESTOS</div><div style="font-size:18px;font-weight:700;color:#f59e0b;font-family:monospace">'+invoice.moneda+' '+invoice.total_con_impuestos.toLocaleString('en-US',{minimumFractionDigits:2})+'</div></div>'
+      +'</div>';
+
+    // Products table
+    html += '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Detalle de productos</div>'
+      +'<div style="background:#1a2235;border-radius:6px;overflow:hidden;margin-bottom:14px">'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<thead><tr style="background:#141f33"><th style="padding:8px 12px;text-align:left;color:#64748b">Producto</th><th style="padding:8px 12px;text-align:center;color:#64748b">Cant.</th><th style="padding:8px 12px;text-align:right;color:#64748b">Precio unit.</th><th style="padding:8px 12px;text-align:right;color:#64748b">Subtotal</th></tr></thead>'
+      +'<tbody>';
+    invoice.productos.forEach(function(p){
+      html += '<tr style="border-top:1px solid rgba(31,45,66,.5)">'
+        +'<td style="padding:8px 12px;color:#e2e8f0">'+p.nombre+'</td>'
+        +'<td style="padding:8px 12px;text-align:center;color:#94a3b8">'+p.cantidad+'</td>'
+        +'<td style="padding:8px 12px;text-align:right;font-family:monospace;color:#00d4ff">$'+p.precio_unitario.toFixed(2)+'</td>'
+        +'<td style="padding:8px 12px;text-align:right;font-family:monospace;color:#e2e8f0">$'+p.subtotal.toFixed(2)+'</td>'
+        +'</tr>';
+    });
+    html += '</tbody></table></div>';
+
+    // Recommendation
+    if(invoice.recomendacion_costo){
+      var rec = invoice.recomendacion_costo;
+      html += '<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:12px">'
+        +'<div style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">💡 Recomendación IA</div>'
+        +'<div style="font-size:13px;color:#e2e8f0"><strong>'+(rec.tipo==='per_user'?'Precio por usuario: $'+rec.valor+'/mes':'Total mensual: $'+rec.valor)+'</strong></div>'
+        +'<div style="font-size:12px;color:#94a3b8;margin-top:4px">'+rec.explicacion+'</div>'
+        +'</div>';
+    }
+
+    breakdown.innerHTML = html;
+    result.style.display = 'block';
+
+    // Action buttons — find matching app in matrix
+    var provNorm = invoice.proveedor.toLowerCase();
+    var colsAll2 = colsGoogle.concat(allApps);
+    var matchedApp = colsAll2.find(function(a){ return a.toLowerCase().indexOf(provNorm)>=0 || provNorm.indexOf(a.toLowerCase().replace('google: ',''))>=0; });
+
+    actions.innerHTML = '';
+
+    if(invoice.recomendacion_costo){
+      var rec = invoice.recomendacion_costo;
+      // Button to apply to matched app
+      if(matchedApp){
+        var btn = document.createElement('button');
+        btn.className = 'cost-save-btn';
+        btn.textContent = '✅ Aplicar a "'+matchedApp+'"';
+        btn.onclick = function(){
+          appCosts[matchedApp] = { type: rec.tipo, value: rec.valor, currency: invoice.moneda };
+          saveCosts();
+          buildCostAppList();
+          renderCostTable();
+          status.innerHTML = '<span style="color:#10b981">✓ Costo aplicado a '+matchedApp+'</span>';
+          // Update the input field visually
+          var colsAll3 = window._costAppMap || colsGoogle.concat(allApps);
+          var idx = colsAll3.indexOf(matchedApp);
+          if(idx>=0){
+            var ti = document.getElementById('ctype_'+idx);
+            var vi = document.getElementById('cval_'+idx);
+            var ci = document.getElementById('ccur_'+idx);
+            if(ti) ti.value = rec.tipo;
+            if(vi) vi.value = rec.valor;
+            if(ci) ci.value = invoice.moneda;
+          }
+        };
+        actions.appendChild(btn);
+      }
+      // Button to apply manually selecting app
+      var sel = document.createElement('select');
+      sel.className = 'fsel';
+      sel.style.fontSize = '12px';
+      sel.innerHTML = '<option value="">— Seleccionar app manualmente —</option>'
+        + colsAll2.map(function(a){ return '<option value="'+a+'">'+a+'</option>'; }).join('');
+      actions.appendChild(sel);
+
+      var btnManual = document.createElement('button');
+      btnManual.className = 'cost-save-btn';
+      btnManual.textContent = '✅ Aplicar a seleccionada';
+      btnManual.onclick = function(){
+        var chosen = sel.value;
+        if(!chosen){ alert('Selecciona una app'); return; }
+        appCosts[chosen] = { type: rec.tipo, value: rec.valor, currency: invoice.moneda };
+        saveCosts();
+        buildCostAppList();
+        renderCostTable();
+        status.innerHTML = '<span style="color:#10b981">✓ Costo aplicado a '+chosen+'</span>';
+      };
+      actions.appendChild(btnManual);
+    }
+
+    status.innerHTML = '<span style="color:#10b981">✓ Factura analizada correctamente</span>';
+
+  } catch(e) {
+    status.innerHTML = '<span style="color:#ef4444">❌ Error: '+e.message+'</span>';
+    console.error(e);
+  }
+  input.value = '';
 }
 function saveCosts(){
   localStorage.setItem('gobernanza_costs', JSON.stringify(appCosts));
