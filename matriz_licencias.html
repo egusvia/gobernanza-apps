@@ -777,16 +777,57 @@ document.getElementById('btnRun').onclick=async function(){
         if(!aec){log('⚠️ '+app+': sin columna correo','lwarn');continue}
         // Detectar columna de estado en la app
         var appKeys=ar.length?Object.keys(ar[0]):[];
-        var appEstCol=fcol(appKeys,['status','estado','state','active']);
+        var appEstCol=fcol(appKeys,['status','estado','state','active','activo','enabled']);
 
-        // Construir set de correos INACTIVOS en esta app
-        var ESTADOS_INACT_APP={'inactive':1,'inactivo':1,'inactiva':1,'disabled':1,
-          'suspended':1,'suspendido':1,'deactivated':1,'desactivado':1,'false':1,'no':1};
+        // Valores que significan INACTIVO (texto) o NO-ACTIVO (booleano)
+        var ESTADOS_INACT_APP={
+          // texto explícito inactivo
+          'inactive':1,'inactivo':1,'inactiva':1,'disabled':1,
+          'suspended':1,'suspendido':1,'deactivated':1,'desactivado':1,
+          // booleano falso — cubre FALSO, FALSE, 0, No
+          'false':1,'falso':1,'0':1,'no':1,'n':1
+        };
+        // Valores que significan ACTIVO — si la columna es booleana y el valor
+        // NO está en esta lista, se trata como inactivo
+        var ESTADOS_ACT_APP={
+          'true':1,'verdadero':1,'1':1,'yes':1,'si':1,'sí':1,'active':1,'activo':1,'activa':1,'enabled':1
+        };
+
         var inactivosApp={};
         if(appEstCol){
+          // Detectar si la columna es de tipo booleano (mayoría de valores son true/false/verdadero/falso)
+          // Detectar si la columna tiene valores booleanos nativos (VERDADERO/FALSO de Excel)
+          var tieneNativeBool = ar.slice(0,20).some(function(r){
+            return typeof r[appEstCol] === 'boolean' || typeof r[appEstCol] === 'number';
+          });
+          var muestraVals=ar.slice(0,20).map(function(r){return String(r[appEstCol]||'').trim().toLowerCase()}).filter(Boolean);
+          var esBoolCol= tieneNativeBool || (muestraVals.length>0 && muestraVals.every(function(v){
+            return ESTADOS_ACT_APP[v]||ESTADOS_INACT_APP[v];
+          }));
+
           ar.forEach(function(r){
-            var est=String(r[appEstCol]||'').trim().toLowerCase();
-            if(ESTADOS_INACT_APP[est]){
+            var rawVal = r[appEstCol];
+            // SheetJS puede devolver boolean true/false nativo para celdas VERDADERO/FALSO
+            // También puede ser número 0/1, o texto
+            var esInactivo = false;
+
+            if(typeof rawVal === 'boolean'){
+              // Booleano nativo: false = sin licencia
+              esInactivo = (rawVal === false);
+            } else if(typeof rawVal === 'number'){
+              // Numérico: 0 = inactivo, 1 = activo
+              esInactivo = (rawVal === 0);
+            } else {
+              // Texto: normalizar y comparar
+              var est = String(rawVal||'').trim().toLowerCase();
+              if(esBoolCol){
+                esInactivo = est !== '' && !ESTADOS_ACT_APP[est];
+              } else {
+                esInactivo = !!ESTADOS_INACT_APP[est];
+              }
+            }
+
+            if(esInactivo){
               var correo=String(r[aec]||'').trim().toLowerCase();
               if(correo) inactivosApp[correo]=1;
             }
