@@ -257,6 +257,7 @@ tbody td{padding:9px 13px;white-space:nowrap}
 .cost-save-btn{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.4);color:#10b981;font-size:11px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
 .cost-save-btn:hover{background:rgba(16,185,129,.2)}
 .cost-summary{background:#111827;border:1px solid #1f2d42;border-radius:12px;overflow:hidden;margin-bottom:24px}
+.cost-summary .cost-summary-header,.cost-summary .cost-row,.cost-summary .cost-total-row{display:grid;grid-template-columns:2.5fr 0.8fr 1fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 20px;align-items:center}
 .cost-summary-header{background:#141f33;padding:12px 20px;display:grid;gap:8px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1f2d42}
 .cost-row{padding:10px 20px;display:grid;gap:8px;align-items:center;border-bottom:1px solid rgba(31,45,66,.4);transition:background .15s}
 .cost-row:hover{background:rgba(0,212,255,.03)}
@@ -557,7 +558,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
 
     <!-- Tabla resumen de costos -->
     <div class="cost-summary" id="costSummaryWrap" style="display:none">
-      <div class="cost-summary-header" style="grid-template-columns:2.5fr 0.8fr 1fr 1fr 1fr 1fr 1fr">
+      <div class="cost-summary-header">
         <div>Aplicación</div>
         <div style="text-align:center">Usuarios</div>
         <div style="text-align:center">Precio/lic/mes</div>
@@ -567,7 +568,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
         <div style="text-align:center;color:#10b981">Total año</div>
       </div>
       <div id="costTableBody"></div>
-      <div class="cost-total-row" id="costTotalRow" style="grid-template-columns:2.5fr 0.8fr 1fr 1fr 1fr 1fr 1fr">
+      <div class="cost-total-row" id="costTotalRow" style="display:none">
         <div>TOTAL</div>
         <div></div>
         <div></div>
