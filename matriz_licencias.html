@@ -775,15 +775,37 @@ document.getElementById('btnRun').onclick=async function(){
         var ar=await readXL(appFiles[app]);
         var aec=emailCol(ar);
         if(!aec){log('⚠️ '+app+': sin columna correo','lwarn');continue}
+        // Detectar columna de estado en la app
+        var appKeys=ar.length?Object.keys(ar[0]):[];
+        var appEstCol=fcol(appKeys,['status','estado','state','active']);
+
+        // Construir set de correos INACTIVOS en esta app
+        var ESTADOS_INACT_APP={'inactive':1,'inactivo':1,'inactiva':1,'disabled':1,
+          'suspended':1,'suspendido':1,'deactivated':1,'desactivado':1,'false':1,'no':1};
+        var inactivosApp={};
+        if(appEstCol){
+          ar.forEach(function(r){
+            var est=String(r[appEstCol]||'').trim().toLowerCase();
+            if(ESTADOS_INACT_APP[est]){
+              var correo=String(r[aec]||'').trim().toLowerCase();
+              if(correo) inactivosApp[correo]=1;
+            }
+          });
+          var nInact=Object.keys(inactivosApp).length;
+          if(nInact>0) log('    ℹ️ '+app+': '+nInact+' usuarios inactivos excluidos','linfo');
+        }
+
+        // Solo correos que aparecen en el archivo (el filtro de inactivos se aplica al marcar)
         var correos=ar.map(function(r){return String(r[aec]||'').trim().toLowerCase()}).filter(function(c){return c.indexOf('@')>=0});
         dfInt.forEach(function(r){if(!(app in r))r[app]=''});
         dfExt.forEach(function(r){if(!(app in r))r[app]=''});
-        var ni=0,ne=0;
+        var ni=0,ne=0,omitidos=0;
         correos.forEach(function(c){
+          if(inactivosApp[c]){omitidos++;return;} // saltar inactivos en la app
           if(c in varMap){dfInt[varMap[c]][app]='X';ni++}
           if(c in extVarMap){dfExt[extVarMap[c]][app]='X';ne++}
         });
-        log('✅ '+app+': '+ni+' int | '+ne+' ext','lok');
+        log('✅ '+app+': '+ni+' int | '+ne+' ext'+(omitidos?' ('+omitidos+' inactivos omitidos)':''),'lok');
         allApps.push(app);
       }catch(e){log('❌ Error '+app+': '+e.message,'lerr')}
     }
