@@ -1097,9 +1097,7 @@ document.getElementById('btnRun').onclick=async function(){
 
         var inactivosApp={};
 
-        // ── También buscar columna de LICENCIA para detectar "sin licencia" ──
-        // Cubre casos como Zoom donde la columna dice "No hay ninguna licencia asignada"
-        var appLicCol = fcol(appKeys,['licen','license','licencia','lic ']);
+        // Scan all columns for "sin licencia" patterns (handles misaligned exports like Zoom)
 
         if(appEstCol){
           var tieneNativeBool = ar.slice(0,20).some(function(r){
@@ -1134,25 +1132,33 @@ document.getElementById('btnRun').onclick=async function(){
           });
         }
 
-        // ── Filtrar por columna de licencia: "no hay ninguna licencia asignada" ──
-        if(appLicCol){
-          var SIN_LICENCIA_PATTERNS = [
-            'no hay ninguna licencia',
-            'no license',
-            'sin licencia',
-            'no license assigned',
-            'none',
-            'ninguna'
-          ];
-          ar.forEach(function(r){
-            var licVal = String(r[appLicCol]||'').trim().toLowerCase();
-            var sinLic = !licVal || SIN_LICENCIA_PATTERNS.some(function(p){ return licVal.indexOf(p) >= 0; });
-            if(sinLic){
-              var correo = String(r[aec]||'').trim().toLowerCase();
-              if(correo) inactivosApp[correo]=1;
-            }
+        // ── Filtrar por "sin licencia" ──
+        // Estrategia segura: primero busca en columnas con nombre relevante,
+        // si no las encuentra, escanea todas SOLO si el patrón es muy específico
+        var SIN_LICENCIA_PATTERNS = [
+          'no hay ninguna licencia',  // Zoom ES
+          'no license assigned',       // Zoom EN
+          'ninguna licencia asignada'  // variante
+        ];
+        // Columnas candidatas por nombre (orden de prioridad)
+        var LIC_COL_KEYWORDS = ['licen','license','licencia','plan','product','rol','role','tipo','type','subscription'];
+        var candidateCols = appKeys.filter(function(k){
+          return LIC_COL_KEYWORDS.some(function(w){ return k.toLowerCase().indexOf(w) >= 0; });
+        });
+        // Si no hay columnas candidatas por nombre, usar todas las columnas de texto
+        var colsToCheck = candidateCols.length > 0 ? candidateCols : appKeys;
+
+        ar.forEach(function(r){
+          var correo = String(r[aec]||'').trim().toLowerCase();
+          if(!correo || inactivosApp[correo]) return;
+          var tieneSinLic = colsToCheck.some(function(col){
+            var v = r[col];
+            if(typeof v !== 'string') return false;
+            var vl = v.trim().toLowerCase();
+            return SIN_LICENCIA_PATTERNS.some(function(p){ return vl.indexOf(p) >= 0; });
           });
-        }
+          if(tieneSinLic) inactivosApp[correo]=1;
+        });
 
         var nInact=Object.keys(inactivosApp).length;
         if(nInact>0) log('    ℹ️ '+app+': '+nInact+' sin licencia activa excluidos','linfo');
