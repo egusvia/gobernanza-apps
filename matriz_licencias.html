@@ -1163,11 +1163,11 @@ document.getElementById('btnRun').onclick=async function(){
         dfExt.forEach(function(r){if(!(app in r))r[app]=''});
         var ni=0,ne=0,omitidos=0;
         correos.forEach(function(c){
-          if(inactivosApp[c]){omitidos++;return;} // saltar inactivos en la app
+          if(inactivosApp[c]){omitidos++;return;} // sin licencia activa en la app
           if(c in varMap){dfInt[varMap[c]][app]='X';ni++}
           if(c in extVarMap){dfExt[extVarMap[c]][app]='X';ne++}
         });
-        log('✅ '+app+': '+ni+' int | '+ne+' ext'+(omitidos?' ('+omitidos+' inactivos omitidos)':''),'lok');
+        log('✅ '+app+': '+ni+' int | '+ne+' ext'+(omitidos?' ('+omitidos+' sin licencia activa excluidos)':''),'lok');
         allApps.push(app);
       }catch(e){log('❌ Error '+app+': '+e.message,'lerr')}
     }
