@@ -232,6 +232,34 @@ tbody td{padding:9px 13px;white-space:nowrap}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#111827}
 ::-webkit-scrollbar-thumb{background:#1f2d42;border-radius:3px}
+
+/* ── COSTOS ── */
+#costPanel{display:none;background:#0a0f1a;min-height:100vh;position:fixed;inset:0;z-index:500;overflow-y:auto}
+.cost-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:24px}
+.cost-card{background:#111827;border:1px solid #1f2d42;border-radius:12px;padding:20px}
+.cost-card h4{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:16px}
+.cost-input-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cost-input-row label{font-size:12px;color:#94a3b8;width:160px;flex-shrink:0}
+.cost-input{background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;font-size:13px;padding:7px 10px;border-radius:6px;outline:none;width:120px;transition:border-color .2s}
+.cost-input:focus{border-color:#00d4ff}
+.cost-select{background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;font-size:12px;padding:7px 10px;border-radius:6px;outline:none;cursor:pointer;width:80px}
+.cost-save-btn{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.4);color:#10b981;font-size:11px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.cost-save-btn:hover{background:rgba(16,185,129,.2)}
+.cost-summary{background:#111827;border:1px solid #1f2d42;border-radius:12px;overflow:hidden;margin-bottom:24px}
+.cost-summary-header{background:#141f33;padding:14px 20px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:8px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1f2d42}
+.cost-row{padding:12px 20px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;border-bottom:1px solid rgba(31,45,66,.4);transition:background .15s}
+.cost-row:hover{background:rgba(0,212,255,.03)}
+.cost-row:last-child{border-bottom:none}
+.cost-app-name{font-size:13px;font-weight:500}
+.cost-val{font-size:13px;font-family:monospace}
+.cost-wasted{color:#ef4444;font-weight:600}
+.cost-total-row{background:#1a2235;padding:14px 20px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;font-weight:700;border-top:2px solid #1f2d42}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.kpi-card{background:#111827;border:1px solid #1f2d42;border-radius:10px;padding:18px}
+.kpi-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.kpi-val{font-size:26px;font-weight:700;font-family:monospace}
+.kpi-sub{font-size:11px;color:#64748b;margin-top:4px}
+.waste-pct{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);margin-left:6px}
 </style>
 </head>
 <body>
@@ -277,6 +305,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
     <span class="badge ba" id="badgeExt">0 externos</span>
     <span class="badge bg" id="badgeApp">0 apps</span>
     <button class="btnsnap" id="btnSnap">💾 Guardar Snapshot</button>
+    <button class="blogout" onclick="openCost()" style="border-color:rgba(245,158,11,.3);color:#f59e0b">💰 Costos</button>
     <button class="blogout" onclick="openHist()" style="border-color:rgba(0,212,255,.3);color:#00d4ff">📋 Historial</button>
     <button class="blogout" id="blogout">⎋ Salir</button>
   </div>
@@ -442,6 +471,55 @@ var CONTRASENA_VALIDA = "Xertica2026";
   </div>
 
 </div><!-- .wrap -->
+<!-- COSTOS PANEL -->
+<div id="costPanel">
+  <div class="hist-header">
+    <div class="hlogo">Xertica<span>.ai</span></div>
+    <div class="hist-title">💰 Gestión de Costos de Licencias</div>
+    <button class="btnhist" onclick="closeCost()">✕ Cerrar</button>
+  </div>
+  <div style="max-width:1400px;margin:0 auto;padding:28px">
+
+    <!-- KPIs -->
+    <div class="kpi-grid" id="costKpis">
+      <div class="kpi-card"><div class="kpi-label">Costo mensual total</div><div class="kpi-val sv-a" id="kpiTotal">$0</div><div class="kpi-sub">suma de todas las apps configuradas</div></div>
+      <div class="kpi-card"><div class="kpi-label">Costo usuarios activos</div><div class="kpi-val sv-g" id="kpiActivos">$0</div><div class="kpi-sub">licencias en uso efectivo</div></div>
+      <div class="kpi-card"><div class="kpi-label">Costo desperdiciado</div><div class="kpi-val" style="color:#ef4444" id="kpiWasted">$0</div><div class="kpi-sub" id="kpiWastedSub">usuarios inactivos/suspendidos con licencia</div></div>
+      <div class="kpi-card"><div class="kpi-label">% Desperdicio</div><div class="kpi-val" style="color:#f59e0b" id="kpiPct">0%</div><div class="kpi-sub">del presupuesto total</div></div>
+    </div>
+
+    <!-- Configurar costos por app -->
+    <div class="cost-card" style="margin-bottom:24px">
+      <h4>⚙️ Configurar precio por aplicación</h4>
+      <p style="font-size:12px;color:#64748b;margin-bottom:16px">Ingresa el precio por licencia/mes <strong>o</strong> el costo total de la factura mensual. El sistema calcula el resto automáticamente.</p>
+      <div id="costAppList" style="display:flex;flex-direction:column;gap:6px"></div>
+      <button onclick="saveAllCosts()" class="cost-save-btn" style="margin-top:16px;padding:10px 24px;font-size:13px">💾 Guardar todos los costos</button>
+    </div>
+
+    <!-- Tabla resumen de costos -->
+    <div class="cost-summary" id="costSummaryWrap" style="display:none">
+      <div class="cost-summary-header">
+        <div>Aplicación</div>
+        <div style="text-align:center">Usuarios</div>
+        <div style="text-align:center">Precio/lic</div>
+        <div style="text-align:center">Costo activos</div>
+        <div style="text-align:center">Costo inactivos</div>
+        <div style="text-align:center">Total mes</div>
+      </div>
+      <div id="costTableBody"></div>
+      <div class="cost-total-row" id="costTotalRow" style="display:none">
+        <div>TOTAL</div>
+        <div></div>
+        <div></div>
+        <div style="text-align:center;color:#10b981;font-family:monospace" id="totalActivos">$0</div>
+        <div style="text-align:center;color:#ef4444;font-family:monospace" id="totalInactivos">$0</div>
+        <div style="text-align:center;color:#f59e0b;font-family:monospace" id="totalMes">$0</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- HISTORIAL PANEL -->
 <div id="histPanel">
   <div class="hist-header">
@@ -1184,6 +1262,8 @@ function buildSnapshot(){
     correosExternos: dfExt.map(function(r){return{email:r['Correo Electrónico'],nombre:r['Nombre'],estado:r['Estado'],licencias:r['Contador Licencias']}}),
     appDetalle: appDetalle
   };
+  // incluir costos en el snapshot
+  snap.appCosts = appCosts;
   return snap;
 }
 
@@ -1427,6 +1507,160 @@ function renderSnaps(){
     list.appendChild(card);
   });
 }
+
+// ── COSTOS ──
+var appCosts = {}; // { appName: { type:'per_user'|'total', value: number, currency:'USD' } }
+
+function loadCosts(){
+  try { appCosts = JSON.parse(localStorage.getItem('gobernanza_costs')||'{}'); } catch(e){ appCosts={}; }
+}
+function saveCosts(){
+  localStorage.setItem('gobernanza_costs', JSON.stringify(appCosts));
+}
+
+function fmtCurrency(val, currency){
+  if(!val && val!==0) return '—';
+  currency = currency||'USD';
+  return new Intl.NumberFormat('en-US',{style:'currency',currency:currency,minimumFractionDigits:2}).format(val);
+}
+
+function openCost(){
+  loadCosts();
+  document.getElementById('costPanel').style.display='block';
+  buildCostAppList();
+  renderCostTable();
+}
+function closeCost(){
+  document.getElementById('costPanel').style.display='none';
+}
+
+function buildCostAppList(){
+  var list = document.getElementById('costAppList');
+  var colsAll2 = colsGoogle.concat(allApps);
+  if(!colsAll2.length){
+    list.innerHTML='<div style="color:#64748b;font-size:13px;padding:12px">Primero genera la matriz para ver las apps disponibles.</div>';
+    return;
+  }
+  // Store mapping idx -> app name for saveAllCosts
+  window._costAppMap = colsAll2;
+  list.innerHTML = colsAll2.map(function(app, idx){
+    var saved = appCosts[app]||{};
+    var tipo = saved.type||'per_user';
+    var val  = saved.value||'';
+    var cur  = saved.currency||'USD';
+    return '<div class="cost-input-row">'
+      +'<label title="'+app+'" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+app+'</label>'
+      +'<select class="cost-select" id="ctype_'+idx+'">'
+      +'<option value="per_user"'+(tipo==='per_user'?' selected':'')+'>$/usuario</option>'
+      +'<option value="total"'+(tipo==='total'?' selected':'')+'>Total mes</option>'
+      +'</select>'
+      +'<input class="cost-input" type="number" min="0" step="0.01" placeholder="0.00" id="cval_'+idx+'" value="'+val+'">'
+      +'<select class="cost-select" id="ccur_'+idx+'">'
+      +'<option value="USD"'+(cur==='USD'?' selected':'')+'>USD</option>'
+      +'<option value="EUR"'+(cur==='EUR'?' selected':'')+'>EUR</option>'
+      +'<option value="MXN"'+(cur==='MXN'?' selected':'')+'>MXN</option>'
+      +'<option value="COP"'+(cur==='COP'?' selected':'')+'>COP</option>'
+      +'<option value="BRL"'+(cur==='BRL'?' selected':'')+'>BRL</option>'
+      +'<option value="PEN"'+(cur==='PEN'?' selected':'')+'>PEN</option>'
+      +'</select>'
+      +'</div>';
+  }).join('');
+}
+
+function saveAllCosts(){
+  var colsAll2 = window._costAppMap || colsGoogle.concat(allApps);
+  colsAll2.forEach(function(app, idx){
+    var tipo = document.getElementById('ctype_'+idx);
+    var val  = document.getElementById('cval_'+idx);
+    var cur  = document.getElementById('ccur_'+idx);
+    if(!tipo||!val) return;
+    var v = parseFloat(val.value);
+    if(!isNaN(v) && v > 0){
+      appCosts[app] = { type: tipo.value, value: v, currency: cur?cur.value:'USD' };
+    } else {
+      delete appCosts[app];
+    }
+  });
+  saveCosts();
+  renderCostTable();
+  alert('Costos guardados correctamente');
+}
+
+function getCostForApp(app){
+  var cfg = appCosts[app];
+  if(!cfg || !cfg.value) return null;
+  var all  = dfInt.concat(dfExt);
+  var SUSP = {'inactive':1,'inactivo':1,'suspended':1,'suspendido':1};
+  var totalUsers    = all.filter(function(r){ return r[app]==='X'; }).length;
+  var activosUsers  = all.filter(function(r){ return r[app]==='X' && !SUSP[String(r['Estado']||'').toLowerCase().trim()]; }).length;
+  var inactivosUsers= totalUsers - activosUsers;
+  var pricePerUser;
+  if(cfg.type === 'per_user'){
+    pricePerUser = cfg.value;
+  } else {
+    // total factura / usuarios totales
+    pricePerUser = totalUsers > 0 ? cfg.value / totalUsers : 0;
+  }
+  return {
+    app: app,
+    totalUsers: totalUsers,
+    activosUsers: activosUsers,
+    inactivosUsers: inactivosUsers,
+    pricePerUser: pricePerUser,
+    costActivos:   activosUsers  * pricePerUser,
+    costInactivos: inactivosUsers * pricePerUser,
+    costTotal:     totalUsers    * pricePerUser,
+    currency: cfg.currency||'USD'
+  };
+}
+
+function renderCostTable(){
+  var colsAll2 = colsGoogle.concat(allApps);
+  var rows = colsAll2.map(getCostForApp).filter(Boolean);
+  var body = document.getElementById('costTableBody');
+  var wrap = document.getElementById('costSummaryWrap');
+
+  if(!rows.length){ wrap.style.display='none'; updateKpis([]); return; }
+  wrap.style.display='block';
+
+  body.innerHTML = rows.map(function(r){
+    var pct = r.costTotal > 0 ? (r.costInactivos/r.costTotal*100).toFixed(1) : 0;
+    return '<div class="cost-row">'
+      +'<div class="cost-app-name">'+r.app+(pct>0?'<span class="waste-pct">'+pct+'% desperdicio</span>':'')+'</div>'
+      +'<div class="cost-val" style="text-align:center;color:#64748b">'+r.totalUsers+' usu.</div>'
+      +'<div class="cost-val" style="text-align:center">'+fmtCurrency(r.pricePerUser, r.currency)+'/mes</div>'
+      +'<div class="cost-val" style="text-align:center;color:#10b981">'+fmtCurrency(r.costActivos, r.currency)+'</div>'
+      +'<div class="cost-val cost-wasted" style="text-align:center">'+fmtCurrency(r.costInactivos, r.currency)+'</div>'
+      +'<div class="cost-val" style="text-align:center;color:#f59e0b;font-weight:700">'+fmtCurrency(r.costTotal, r.currency)+'</div>'
+      +'</div>';
+  }).join('');
+
+  // Totales (solo USD para simplificar el total global)
+  var usdRows = rows.filter(function(r){return r.currency==='USD';});
+  var sumAct  = usdRows.reduce(function(s,r){return s+r.costActivos;},0);
+  var sumInact= usdRows.reduce(function(s,r){return s+r.costInactivos;},0);
+  var sumTot  = usdRows.reduce(function(s,r){return s+r.costTotal;},0);
+  document.getElementById('totalActivos').textContent  = fmtCurrency(sumAct,'USD');
+  document.getElementById('totalInactivos').textContent= fmtCurrency(sumInact,'USD');
+  document.getElementById('totalMes').textContent      = fmtCurrency(sumTot,'USD');
+  document.getElementById('costTotalRow').style.display= 'grid';
+
+  updateKpis(rows);
+}
+
+function updateKpis(rows){
+  var usdRows = rows.filter(function(r){return r.currency==='USD';});
+  var tot   = usdRows.reduce(function(s,r){return s+r.costTotal;},0);
+  var act   = usdRows.reduce(function(s,r){return s+r.costActivos;},0);
+  var waste = usdRows.reduce(function(s,r){return s+r.costInactivos;},0);
+  var pct   = tot > 0 ? (waste/tot*100).toFixed(1) : 0;
+  document.getElementById('kpiTotal').textContent   = fmtCurrency(tot,'USD');
+  document.getElementById('kpiActivos').textContent = fmtCurrency(act,'USD');
+  document.getElementById('kpiWasted').textContent  = fmtCurrency(waste,'USD');
+  document.getElementById('kpiPct').textContent     = pct+'%';
+}
+
+loadCosts();
 
 // Mostrar botón snapshot cuando hay datos
 document.getElementById('btnSnap').style.display='none';
