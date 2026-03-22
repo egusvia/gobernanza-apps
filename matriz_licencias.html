@@ -1148,8 +1148,19 @@ function buildSnapshot(){
   var dateStr = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
   var timeStr = pad(now.getHours())+':'+pad(now.getMinutes());
   var SUSP={'inactive':1,'inactivo':1,'suspended':1,'suspendido':1};
+
+  // Construir detalle por app: { appName: [{email, nombre, estado}] }
+  var colsAll2 = colsGoogle.concat(allApps);
+  var appDetalle = {};
+  colsAll2.forEach(function(app){
+    var usuarios = [];
+    dfInt.forEach(function(r){ if(r[app]==='X') usuarios.push({email:r['Correo Electrónico'],nombre:r['Nombre'],estado:r['Estado'],tipo:'interno'}); });
+    dfExt.forEach(function(r){ if(r[app]==='X') usuarios.push({email:r['Correo Electrónico'],nombre:r['Nombre'],estado:r['Estado'],tipo:'externo'}); });
+    if(usuarios.length) appDetalle[app] = usuarios;
+  });
+
   var snap = {
-    version: 1,
+    version: 2,
     fecha: dateStr,
     hora: timeStr,
     timestamp: now.getTime(),
@@ -1169,9 +1180,9 @@ function buildSnapshot(){
       licenciasTotal: dfInt.concat(dfExt).reduce(function(s,r){return s+(r['Contador Licencias']||0)},0),
       apps: allApps.length + colsGoogle.length
     },
-    // guardar correos para comparar altas/bajas
     correosInternos: dfInt.map(function(r){return{email:r['Correo Electrónico'],nombre:r['Nombre'],estado:r['Estado'],licencias:r['Contador Licencias']}}),
-    correosExternos: dfExt.map(function(r){return{email:r['Correo Electrónico'],nombre:r['Nombre'],estado:r['Estado'],licencias:r['Contador Licencias']}})
+    correosExternos: dfExt.map(function(r){return{email:r['Correo Electrónico'],nombre:r['Nombre'],estado:r['Estado'],licencias:r['Contador Licencias']}}),
+    appDetalle: appDetalle
   };
   return snap;
 }
@@ -1228,6 +1239,35 @@ function diff(a, b){
   return '<span class="diff-badge diff-neg">▼ '+d+'</span>';
 }
 
+// ── HELPERS HISTORIAL ──
+var histExpandedApps = {}; // track expanded app rows
+
+function renderUserList(users, limit){
+  if(!users.length) return '<span style="color:#64748b;font-size:11px">Ninguno</span>';
+  var html = users.slice(0, limit||users.length).map(function(u){
+    var estColor = u.estado && (u.estado.toLowerCase()==='active'||u.estado.toLowerCase()==='activo') ? '#10b981'
+      : (u.estado && (u.estado.toLowerCase()==='suspended'||u.estado.toLowerCase()==='suspendido') ? '#f59e0b' : '#ef4444');
+    var tipo = u.tipo==='externo' ? '<span style="font-size:9px;color:#f59e0b;border:1px solid rgba(245,158,11,.3);padding:1px 5px;border-radius:3px;margin-left:4px">EXT</span>' : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(31,45,66,.4)">'
+      +'<div><span style="font-size:12px;color:#e2e8f0">'+u.nombre+'</span>'+tipo+'<div style="font-size:10px;color:#64748b">'+u.email+'</div></div>'
+      +'<span style="font-size:10px;color:'+estColor+';font-weight:600">'+u.estado+'</span>'
+      +'</div>';
+  }).join('');
+  if(users.length > (limit||users.length)){
+    html += '<div style="font-size:11px;color:#64748b;padding-top:4px">...y '+(users.length-(limit||users.length))+' más</div>';
+  }
+  return html;
+}
+
+function toggleAppDetail(id){
+  var el = document.getElementById(id);
+  var btn = document.getElementById('btn_'+id);
+  if(!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if(btn) btn.textContent = open ? '▶ Ver usuarios' : '▼ Ocultar';
+}
+
 function renderSnaps(){
   var empty = document.getElementById('histEmpty');
   var cont = document.getElementById('histContent');
@@ -1241,8 +1281,8 @@ function renderSnaps(){
     var ps = prev ? prev.stats : null;
     var s = snap.stats;
 
-    // Usuarios nuevos / bajas vs snapshot anterior
-    var nuevosInt='', bajasInt='', nuevosExt='', bajasExt='';
+    // Altas/bajas de usuarios globales
+    var nuevosInt=[], bajasInt=[], nuevosExt=[], bajasExt=[];
     if(prev){
       var prevEmailsInt = new Set(prev.correosInternos.map(function(r){return r.email}));
       var currEmailsInt = new Set(snap.correosInternos.map(function(r){return r.email}));
@@ -1254,51 +1294,136 @@ function renderSnaps(){
       bajasExt  = prev.correosExternos.filter(function(r){return !currEmailsExt.has(r.email)});
     }
 
+    // ── Comparativa por app ──
+    var appsComp = [];
+    var allAppNames = new Set();
+    if(snap.appDetalle) Object.keys(snap.appDetalle).forEach(function(a){ allAppNames.add(a); });
+    if(prev && prev.appDetalle) Object.keys(prev.appDetalle).forEach(function(a){ allAppNames.add(a); });
+
+    allAppNames.forEach(function(app){
+      var curr = snap.appDetalle ? (snap.appDetalle[app]||[]) : [];
+      var ante = prev && prev.appDetalle ? (prev.appDetalle[app]||[]) : null;
+      var currSet = new Set(curr.map(function(u){return u.email}));
+      var anteSet = ante ? new Set(ante.map(function(u){return u.email})) : null;
+      var perdieron = ante ? ante.filter(function(u){return !currSet.has(u.email)}) : [];
+      var ganaron   = ante ? curr.filter(function(u){return !anteSet.has(u.email)}) : [];
+      appsComp.push({
+        app: app,
+        curr: curr.length,
+        ante: ante ? ante.length : null,
+        perdieron: perdieron,
+        ganaron: ganaron,
+        usuarios: curr
+      });
+    });
+    appsComp.sort(function(a,b){ return b.curr - a.curr; });
+
+    var snapId = 'snap_'+idx;
+
     var card = document.createElement('div');
-    card.innerHTML =
-      '<div class="comp-section">'+
-        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'+
-          '<div>'+
-            '<div class="snap-date">📅 '+snap.fecha+' — '+snap.hora+'</div>'+
-            '<div class="snap-meta">'+s.internos+' internos · '+s.externos+' externos · '+s.apps+' apps</div>'+
-          '</div>'+
-          (idx===0?'<span style="font-size:10px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;padding:3px 8px;border-radius:4px;letter-spacing:1px">MÁS RECIENTE</span>':'')+
-        '</div>'+
+    var html = '<div class="comp-section">';
 
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'+
-          // Internos
-          '<div style="background:#1a2235;border-radius:8px;padding:14px">'+
-            '<div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">👥 Internos</div>'+
-            '<div class="comp-row"><span class="comp-label">Total</span><span class="comp-vals"><span style="color:#00d4ff;font-weight:700">'+s.internos+'</span>'+diff(s.internos, ps?ps.internos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Activos</span><span class="comp-vals"><span style="color:#10b981;font-weight:700">'+s.intActivos+'</span>'+diff(s.intActivos, ps?ps.intActivos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Inactivos</span><span class="comp-vals"><span style="color:#ef4444;font-weight:700">'+s.intInactivos+'</span>'+diff(s.intInactivos, ps?ps.intInactivos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Licencias totales</span><span class="comp-vals"><span style="color:#e2e8f0;font-weight:700">'+s.intLicencias+'</span>'+diff(s.intLicencias, ps?ps.intLicencias:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Lic. activos</span><span class="comp-vals"><span style="color:#10b981">'+s.intLicActivos+'</span>'+diff(s.intLicActivos, ps?ps.intLicActivos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Lic. inactivos</span><span class="comp-vals"><span style="color:#ef4444">'+s.intLicInactivos+'</span>'+diff(s.intLicInactivos, ps?ps.intLicInactivos:null)+'</span></div>'+
-          '</div>'+
-          // Externos
-          '<div style="background:#1a2235;border-radius:8px;padding:14px">'+
-            '<div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🌐 Externos (Workspace)</div>'+
-            '<div class="comp-row"><span class="comp-label">Total</span><span class="comp-vals"><span style="color:#f59e0b;font-weight:700">'+s.externos+'</span>'+diff(s.externos, ps?ps.externos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Activos</span><span class="comp-vals"><span style="color:#10b981;font-weight:700">'+s.extActivos+'</span>'+diff(s.extActivos, ps?ps.extActivos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Suspendidos</span><span class="comp-vals"><span style="color:#f59e0b;font-weight:700">'+s.extSuspendidos+'</span>'+diff(s.extSuspendidos, ps?ps.extSuspendidos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Licencias totales</span><span class="comp-vals"><span style="color:#e2e8f0;font-weight:700">'+s.extLicencias+'</span>'+diff(s.extLicencias, ps?ps.extLicencias:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Lic. activos</span><span class="comp-vals"><span style="color:#10b981">'+s.extLicActivos+'</span>'+diff(s.extLicActivos, ps?ps.extLicActivos:null)+'</span></div>'+
-            '<div class="comp-row"><span class="comp-label">Lic. suspendidos</span><span class="comp-vals"><span style="color:#f59e0b">'+s.extLicSuspendidos+'</span>'+diff(s.extLicSuspendidos, ps?ps.extLicSuspendidos:null)+'</span></div>'+
-          '</div>'+
-        '</div>'+
+    // ── Header ──
+    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'
+      +'<div>'
+      +'<div class="snap-date">📅 '+snap.fecha+' — '+snap.hora+'</div>'
+      +'<div class="snap-meta">'+s.internos+' internos · '+s.externos+' externos · '+s.apps+' apps</div>'
+      +'</div>'
+      +(idx===0?'<span style="font-size:10px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;padding:3px 8px;border-radius:4px;letter-spacing:1px">MÁS RECIENTE</span>':'')
+      +'</div>';
 
-        // Altas y bajas vs anterior
-        (prev && (nuevosInt.length||bajasInt.length||nuevosExt.length||bajasExt.length) ?
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
-            (nuevosInt.length?'<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➕ Altas Internos ('+nuevosInt.length+')</div>'+nuevosInt.slice(0,8).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(nuevosInt.length>8?'<div style="font-size:11px;color:#64748b;margin-top:4px">...y '+(nuevosInt.length-8)+' más</div>':'')+'</div>':'<div></div>')+
-            (bajasInt.length?'<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➖ Bajas Internos ('+bajasInt.length+')</div>'+bajasInt.slice(0,8).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(bajasInt.length>8?'<div style="font-size:11px;color:#64748b;margin-top:4px">...y '+(bajasInt.length-8)+' más</div>':'')+'</div>':'<div></div>')+
-            (nuevosExt.length?'<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➕ Altas Externos ('+nuevosExt.length+')</div>'+nuevosExt.slice(0,8).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(nuevosExt.length>8?'<div style="font-size:11px;color:#64748b;margin-top:4px">...y '+(nuevosExt.length-8)+' más</div>':'')+'</div>':'<div></div>')+
-            (bajasExt.length?'<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➖ Bajas Externos ('+bajasExt.length+')</div>'+bajasExt.slice(0,8).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(bajasExt.length>8?'<div style="font-size:11px;color:#64748b;margin-top:4px">...y '+(bajasExt.length-8)+' más</div>':'')+'</div>':'<div></div>')+
-          '</div>'
-        : (prev ? '<div style="text-align:center;padding:12px;font-size:12px;color:#64748b;background:#1a2235;border-radius:8px">✓ Sin cambios de usuarios respecto al snapshot anterior</div>' : '<div style="text-align:center;padding:12px;font-size:12px;color:#64748b;background:#1a2235;border-radius:8px">Snapshot base — carga uno más reciente para ver comparativa</div>'))+
+    // ── Stats globales ──
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">'
+      +'<div style="background:#1a2235;border-radius:8px;padding:14px">'
+      +'<div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">👥 Internos</div>'
+      +'<div class="comp-row"><span class="comp-label">Total</span><span class="comp-vals"><span style="color:#00d4ff;font-weight:700">'+s.internos+'</span>'+diff(s.internos,ps?ps.internos:null)+'</span></div>'
+      +'<div class="comp-row"><span class="comp-label">Activos</span><span class="comp-vals"><span style="color:#10b981;font-weight:700">'+s.intActivos+'</span>'+diff(s.intActivos,ps?ps.intActivos:null)+'</span></div>'
+      +'<div class="comp-row"><span class="comp-label">Inactivos</span><span class="comp-vals"><span style="color:#ef4444;font-weight:700">'+s.intInactivos+'</span>'+diff(s.intInactivos,ps?ps.intInactivos:null)+'</span></div>'
+      +'<div class="comp-row"><span class="comp-label">Licencias</span><span class="comp-vals"><span style="color:#e2e8f0;font-weight:700">'+s.intLicencias+'</span>'+diff(s.intLicencias,ps?ps.intLicencias:null)+'</span></div>'
+      +'</div>'
+      +'<div style="background:#1a2235;border-radius:8px;padding:14px">'
+      +'<div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🌐 Externos</div>'
+      +'<div class="comp-row"><span class="comp-label">Total</span><span class="comp-vals"><span style="color:#f59e0b;font-weight:700">'+s.externos+'</span>'+diff(s.externos,ps?ps.externos:null)+'</span></div>'
+      +'<div class="comp-row"><span class="comp-label">Activos</span><span class="comp-vals"><span style="color:#10b981;font-weight:700">'+s.extActivos+'</span>'+diff(s.extActivos,ps?ps.extActivos:null)+'</span></div>'
+      +'<div class="comp-row"><span class="comp-label">Suspendidos</span><span class="comp-vals"><span style="color:#f59e0b;font-weight:700">'+s.extSuspendidos+'</span>'+diff(s.extSuspendidos,ps?ps.extSuspendidos:null)+'</span></div>'
+      +'<div class="comp-row"><span class="comp-label">Licencias</span><span class="comp-vals"><span style="color:#e2e8f0;font-weight:700">'+s.extLicencias+'</span>'+diff(s.extLicencias,ps?ps.extLicencias:null)+'</span></div>'
+      +'</div>'
+      +'</div>';
 
-      '</div>';
+    // ── Tabla comparativa por aplicación ──
+    html += '<div style="margin-bottom:16px">'
+      +'<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px">📊 Licencias por Aplicación</div>'
+      +'<div style="background:#1a2235;border-radius:8px;overflow:hidden">'
+      +'<table style="width:100%;border-collapse:collapse;font-size:13px">'
+      +'<thead><tr style="background:#141f33">'
+      +'<th style="padding:10px 14px;text-align:left;font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #1f2d42">Aplicación</th>'
+      +'<th style="padding:10px 14px;text-align:center;font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #1f2d42">Anterior</th>'
+      +'<th style="padding:10px 14px;text-align:center;font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #1f2d42">Actual</th>'
+      +'<th style="padding:10px 14px;text-align:center;font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #1f2d42">Cambio</th>'
+      +'<th style="padding:10px 14px;text-align:center;font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #1f2d42">Detalle</th>'
+      +'</tr></thead><tbody>';
+
+    appsComp.forEach(function(ac, ai){
+      var rowId = snapId+'_app_'+ai;
+      var hasCambios = prev && (ac.perdieron.length || ac.ganaron.length);
+      var cambioHtml = ac.ante===null ? '<span style="color:#64748b;font-size:11px">— base</span>'
+        : diff(ac.curr, ac.ante);
+      html += '<tr style="border-bottom:1px solid rgba(31,45,66,.5)">'
+        +'<td style="padding:9px 14px;font-weight:500">'+ac.app+'</td>'
+        +'<td style="padding:9px 14px;text-align:center;color:#64748b">'+(ac.ante!==null?ac.ante:'—')+'</td>'
+        +'<td style="padding:9px 14px;text-align:center;font-weight:700;color:#00d4ff">'+ac.curr+'</td>'
+        +'<td style="padding:9px 14px;text-align:center">'+cambioHtml+'</td>'
+        +'<td style="padding:9px 14px;text-align:center">'
+        +'<button id="btn_'+rowId+'" onclick="toggleAppDetail(''+rowId+'')" '
+        +'style="background:transparent;border:1px solid '+(hasCambios?'rgba(245,158,11,.4)':'#1f2d42')+';color:'+(hasCambios?'#f59e0b':'#64748b')+';font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;letter-spacing:1px">'
+        +'▶ Ver usuarios</button>'
+        +'</td>'
+        +'</tr>'
+        // Fila expandible con detalle
+        +'<tr id="'+rowId+'" style="display:none">'
+        +'<td colspan="5" style="padding:0">'
+        +'<div style="padding:14px 18px;background:#0f1928;border-bottom:1px solid #1f2d42">';
+
+      if(hasCambios){
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">';
+        if(ac.ganaron.length){
+          html += '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:10px">'
+            +'<div style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➕ Agregados ('+ac.ganaron.length+')</div>'
+            +renderUserList(ac.ganaron, 20)
+            +'</div>';
+        }
+        if(ac.perdieron.length){
+          html += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:10px">'
+            +'<div style="font-size:10px;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➖ Ya no tienen licencia ('+ac.perdieron.length+')</div>'
+            +renderUserList(ac.perdieron, 20)
+            +'</div>';
+        }
+        html += '</div>';
+      }
+
+      // Lista completa actual
+      html += '<div style="margin-top:4px">'
+        +'<div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">👥 Usuarios con licencia actualmente ('+ac.usuarios.length+')</div>'
+        +renderUserList(ac.usuarios, 30)
+        +'</div>';
+
+      html += '</div></td></tr>';
+    });
+
+    html += '</tbody></table></div></div>';
+
+    // ── Altas/bajas globales ──
+    if(prev && (nuevosInt.length||bajasInt.length||nuevosExt.length||bajasExt.length)){
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">';
+      if(nuevosInt.length) html += '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➕ Nuevos Internos ('+nuevosInt.length+')</div>'+nuevosInt.slice(0,10).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(nuevosInt.length>10?'<div style="font-size:11px;color:#64748b">...y '+(nuevosInt.length-10)+' más</div>':'')+'</div>';
+      if(bajasInt.length)  html += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➖ Bajas Internos ('+bajasInt.length+')</div>'+bajasInt.slice(0,10).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(bajasInt.length>10?'<div style="font-size:11px;color:#64748b">...y '+(bajasInt.length-10)+' más</div>':'')+'</div>';
+      if(nuevosExt.length) html += '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➕ Nuevos Externos ('+nuevosExt.length+')</div>'+nuevosExt.slice(0,10).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(nuevosExt.length>10?'<div style="font-size:11px;color:#64748b">...y '+(nuevosExt.length-10)+' más</div>':'')+'</div>';
+      if(bajasExt.length)  html += '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px"><div style="font-size:10px;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">➖ Bajas Externos ('+bajasExt.length+')</div>'+bajasExt.slice(0,10).map(function(r){return'<div style="font-size:11px;color:#94a3b8;padding:2px 0">'+r.nombre+' <span style="color:#64748b">'+r.email+'</span></div>'}).join('')+(bajasExt.length>10?'<div style="font-size:11px;color:#64748b">...y '+(bajasExt.length-10)+' más</div>':'')+'</div>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+    card.innerHTML = html;
     list.appendChild(card);
   });
 }
