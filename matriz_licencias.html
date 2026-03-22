@@ -257,11 +257,17 @@ tbody td{padding:9px 13px;white-space:nowrap}
 .cost-save-btn{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.4);color:#10b981;font-size:11px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
 .cost-save-btn:hover{background:rgba(16,185,129,.2)}
 .cost-summary{background:#111827;border:1px solid #1f2d42;border-radius:12px;overflow:hidden;margin-bottom:24px}
-.cost-summary .cost-summary-header,.cost-summary .cost-row,.cost-summary .cost-total-row{display:grid;grid-template-columns:2.5fr 0.8fr 1fr 1fr 1fr 1fr 1fr;gap:8px;padding:11px 20px;align-items:center}
-.cost-summary-header{background:#141f33;padding:12px 20px;display:grid;gap:8px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1f2d42}
-.cost-row{padding:10px 20px;display:grid;gap:8px;align-items:center;border-bottom:1px solid rgba(31,45,66,.4);transition:background .15s}
-.cost-row:hover{background:rgba(0,212,255,.03)}
-.cost-row:last-child{border-bottom:none}
+.cost-table{width:100%;border-collapse:collapse}
+.cost-table thead tr{background:#141f33;border-bottom:1px solid #1f2d42}
+.cost-table thead th{padding:11px 16px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:600;white-space:nowrap}
+.cost-table thead th:not(:first-child){text-align:right}
+.cost-table tbody tr{border-bottom:1px solid rgba(31,45,66,.4);transition:background .15s}
+.cost-table tbody tr:hover{background:rgba(0,212,255,.03)}
+.cost-table tbody td{padding:10px 16px;font-size:13px;vertical-align:middle}
+.cost-table tbody td:not(:first-child){text-align:right;font-family:monospace}
+.cost-table tfoot tr{background:#1a2235;border-top:2px solid #1f2d42}
+.cost-table tfoot td{padding:11px 16px;font-weight:700;font-size:13px}
+.cost-table tfoot td:not(:first-child){text-align:right;font-family:monospace}
 .cost-app-name{font-size:13px;font-weight:500;word-break:break-word;line-height:1.3}
 .cost-val{font-size:13px;font-family:monospace}
 .cost-wasted{color:#ef4444;font-weight:600}
@@ -558,25 +564,31 @@ var CONTRASENA_VALIDA = "Xertica2026";
 
     <!-- Tabla resumen de costos -->
     <div class="cost-summary" id="costSummaryWrap" style="display:none">
-      <div class="cost-summary-header">
-        <div>Aplicación</div>
-        <div style="text-align:center">Usuarios</div>
-        <div style="text-align:center">Precio/lic/mes</div>
-        <div style="text-align:center">Costo activos</div>
-        <div style="text-align:center">Costo inactivos</div>
-        <div style="text-align:center">Total mes</div>
-        <div style="text-align:center;color:#10b981">Total año</div>
-      </div>
-      <div id="costTableBody"></div>
-      <div class="cost-total-row" id="costTotalRow" style="display:none">
-        <div>TOTAL</div>
-        <div></div>
-        <div></div>
-        <div style="text-align:center;color:#10b981;font-family:monospace" id="totalActivos">$0</div>
-        <div style="text-align:center;color:#ef4444;font-family:monospace" id="totalInactivos">$0</div>
-        <div style="text-align:center;color:#f59e0b;font-family:monospace" id="totalMes">$0</div>
-        <div style="text-align:center;color:#10b981;font-family:monospace" id="totalAnual">$0</div>
-      </div>
+      <table class="cost-table">
+        <thead>
+          <tr>
+            <th>Aplicación</th>
+            <th>Usuarios</th>
+            <th>Precio/lic/mes</th>
+            <th>Costo activos</th>
+            <th style="color:#ef4444">Costo inactivos</th>
+            <th>Total mes</th>
+            <th style="color:#10b981">Total año</th>
+          </tr>
+        </thead>
+        <tbody id="costTableBody"></tbody>
+        <tfoot id="costTotalRow" style="display:none">
+          <tr>
+            <td>TOTAL</td>
+            <td></td>
+            <td></td>
+            <td style="color:#10b981" id="totalActivos">$0</td>
+            <td style="color:#ef4444" id="totalInactivos">$0</td>
+            <td style="color:#f59e0b" id="totalMes">$0</td>
+            <td style="color:#10b981" id="totalAnual">$0</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
 
   </div>
@@ -2053,15 +2065,18 @@ function renderCostTable(){
   wrap.style.display='block';
 
   body.innerHTML = rows.map(function(r){
-    var pct = r.costTotal > 0 ? (r.costInactivos/r.costTotal*100).toFixed(1) : 0;
-    return '<div class="cost-row">'
-      +'<div class="cost-app-name">'+r.app+(pct>0?'<span class="waste-pct">'+pct+'% desperdicio</span>':'')+'</div>'
-      +'<div class="cost-val" style="text-align:center;color:#64748b">'+r.totalUsers+' usu.</div>'
-      +'<div class="cost-val" style="text-align:center">'+fmtCurrency(r.pricePerUser, r.currency)+'/mes</div>'
-      +'<div class="cost-val" style="text-align:center;color:#10b981">'+fmtCurrency(r.costActivos, r.currency)+'</div>'
-      +'<div class="cost-val cost-wasted" style="text-align:center">'+fmtCurrency(r.costInactivos, r.currency)+'</div>'
-      +'<div class="cost-val" style="text-align:center;color:#f59e0b;font-weight:700">'+fmtCurrency(r.costTotal, r.currency)+'</div>'
-      +'</div>';
+    var pct = (r.costTotal&&r.costTotal>0) ? (r.costInactivos/r.costTotal*100).toFixed(1) : 0;
+    var noData = r.sinDatos;
+    var costAnual = r.costTotal ? r.costTotal*12 : null;
+    return '<tr>'
+      +'<td class="cost-app-name">'+r.app+(!noData&&pct>0?'<span class="waste-pct">'+pct+'% desperdicio</span>':'')+'</td>'
+      +'<td style="color:#64748b">'+(noData?'<span style="color:#475569;font-style:italic">genera matriz</span>':r.totalUsers+' usu.')+'</td>'
+      +'<td>'+fmtCurrency(r.pricePerUser,r.currency)+'/mes</td>'
+      +'<td style="color:#10b981">'+(noData?'—':fmtCurrency(r.costActivos,r.currency))+'</td>'
+      +'<td style="color:#ef4444;font-weight:600">'+(noData?'—':fmtCurrency(r.costInactivos,r.currency))+'</td>'
+      +'<td style="color:#f59e0b;font-weight:700">'+(noData?'—':fmtCurrency(r.costTotal,r.currency))+'</td>'
+      +'<td style="color:#10b981;font-weight:700">'+(noData||!costAnual?'—':fmtCurrency(costAnual,r.currency))+'</td>'
+      +'</tr>';
   }).join('');
 
   // Totales (solo USD para simplificar el total global)
@@ -2073,7 +2088,7 @@ function renderCostTable(){
   document.getElementById('totalInactivos').textContent= fmtCurrency(sumInact,'USD');
   document.getElementById('totalMes').textContent      = fmtCurrency(sumTot,'USD');
   document.getElementById('totalAnual').textContent    = fmtCurrency(sumTot*12,'USD');
-  document.getElementById('costTotalRow').style.display= 'grid';
+  document.getElementById('costTotalRow').style.display= 'table-row-group';
 
   updateKpis(rows);
 }
