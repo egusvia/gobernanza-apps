@@ -249,22 +249,22 @@ tbody td{padding:9px 13px;white-space:nowrap}
 .cost-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:24px}
 .cost-card{background:#111827;border:1px solid #1f2d42;border-radius:12px;padding:20px}
 .cost-card h4{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:16px}
-.cost-input-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.cost-input-row label{font-size:12px;color:#94a3b8;width:210px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cost-input-row{display:grid;grid-template-columns:240px 120px 180px 90px;align-items:center;gap:10px;margin-bottom:8px;padding:6px 8px;border-radius:6px;transition:background .15s}.cost-input-row:hover{background:rgba(255,255,255,.02)}
+.cost-input-row label{font-size:12px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cost-input{background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;font-size:13px;padding:7px 10px;border-radius:6px;outline:none;width:120px;transition:border-color .2s}
 .cost-input:focus{border-color:#00d4ff}
 .cost-select{background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;font-size:12px;padding:7px 10px;border-radius:6px;outline:none;cursor:pointer;width:80px}
 .cost-save-btn{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.4);color:#10b981;font-size:11px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
 .cost-save-btn:hover{background:rgba(16,185,129,.2)}
 .cost-summary{background:#111827;border:1px solid #1f2d42;border-radius:12px;overflow:hidden;margin-bottom:24px}
-.cost-summary-header{background:#141f33;padding:14px 20px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:8px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1f2d42}
-.cost-row{padding:12px 20px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;border-bottom:1px solid rgba(31,45,66,.4);transition:background .15s}
+.cost-summary-header{background:#141f33;padding:12px 20px;display:grid;gap:8px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1f2d42}
+.cost-row{padding:10px 20px;display:grid;gap:8px;align-items:center;border-bottom:1px solid rgba(31,45,66,.4);transition:background .15s}
 .cost-row:hover{background:rgba(0,212,255,.03)}
 .cost-row:last-child{border-bottom:none}
-.cost-app-name{font-size:13px;font-weight:500}
+.cost-app-name{font-size:13px;font-weight:500;word-break:break-word;line-height:1.3}
 .cost-val{font-size:13px;font-family:monospace}
 .cost-wasted{color:#ef4444;font-weight:600}
-.cost-total-row{background:#1a2235;padding:14px 20px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;font-weight:700;border-top:2px solid #1f2d42}
+.cost-total-row{background:#1a2235;padding:12px 20px;display:grid;gap:8px;align-items:center;font-weight:700;border-top:2px solid #1f2d42}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px}
 .kpi-card{background:#111827;border:1px solid #1f2d42;border-radius:10px;padding:18px}
 .kpi-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
@@ -543,14 +543,21 @@ var CONTRASENA_VALIDA = "Xertica2026";
     <!-- Configurar costos por app -->
     <div class="cost-card" style="margin-bottom:24px">
       <h4>⚙️ Configurar precio por aplicación</h4>
-      <p style="font-size:12px;color:#64748b;margin-bottom:16px">Ingresa el precio por licencia/mes <strong>o</strong> el costo total de la factura mensual. El sistema calcula el resto automáticamente.</p>
-      <div id="costAppList" style="display:flex;flex-direction:column;gap:6px"></div>
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px">Ingresa el precio por licencia/mes <strong>o</strong> el costo total mensual. El campo AÑO se calcula automáticamente (×12) y viceversa.</p>
+      <!-- Column headers -->
+      <div style="display:grid;grid-template-columns:240px 120px 180px 90px;gap:10px;padding:4px 8px;margin-bottom:4px;border-bottom:1px solid #1f2d42">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Aplicación</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Tipo</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Valor</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Moneda</div>
+      </div>
+      <div id="costAppList" style="display:flex;flex-direction:column;gap:2px"></div>
       <button onclick="saveAllCosts()" class="cost-save-btn" style="margin-top:16px;padding:10px 24px;font-size:13px">💾 Guardar todos los costos</button>
     </div>
 
     <!-- Tabla resumen de costos -->
     <div class="cost-summary" id="costSummaryWrap" style="display:none">
-      <div class="cost-summary-header" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 1fr">
+      <div class="cost-summary-header" style="grid-template-columns:2.5fr 0.8fr 1fr 1fr 1fr 1fr 1fr">
         <div>Aplicación</div>
         <div style="text-align:center">Usuarios</div>
         <div style="text-align:center">Precio/lic/mes</div>
@@ -560,7 +567,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
         <div style="text-align:center;color:#10b981">Total año</div>
       </div>
       <div id="costTableBody"></div>
-      <div class="cost-total-row" id="costTotalRow" style="display:none;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 1fr">
+      <div class="cost-total-row" id="costTotalRow" style="grid-template-columns:2.5fr 0.8fr 1fr 1fr 1fr 1fr 1fr">
         <div>TOTAL</div>
         <div></div>
         <div></div>
@@ -1089,9 +1096,12 @@ document.getElementById('btnRun').onclick=async function(){
         };
 
         var inactivosApp={};
+
+        // ── También buscar columna de LICENCIA para detectar "sin licencia" ──
+        // Cubre casos como Zoom donde la columna dice "No hay ninguna licencia asignada"
+        var appLicCol = fcol(appKeys,['licen','license','licencia','lic ']);
+
         if(appEstCol){
-          // Detectar si la columna es de tipo booleano (mayoría de valores son true/false/verdadero/falso)
-          // Detectar si la columna tiene valores booleanos nativos (VERDADERO/FALSO de Excel)
           var tieneNativeBool = ar.slice(0,20).some(function(r){
             return typeof r[appEstCol] === 'boolean' || typeof r[appEstCol] === 'number';
           });
@@ -1102,18 +1112,13 @@ document.getElementById('btnRun').onclick=async function(){
 
           ar.forEach(function(r){
             var rawVal = r[appEstCol];
-            // SheetJS puede devolver boolean true/false nativo para celdas VERDADERO/FALSO
-            // También puede ser número 0/1, o texto
             var esInactivo = false;
 
             if(typeof rawVal === 'boolean'){
-              // Booleano nativo: false = sin licencia
               esInactivo = (rawVal === false);
             } else if(typeof rawVal === 'number'){
-              // Numérico: 0 = inactivo, 1 = activo
               esInactivo = (rawVal === 0);
             } else {
-              // Texto: normalizar y comparar
               var est = String(rawVal||'').trim().toLowerCase();
               if(esBoolCol){
                 esInactivo = est !== '' && !ESTADOS_ACT_APP[est];
@@ -1127,9 +1132,30 @@ document.getElementById('btnRun').onclick=async function(){
               if(correo) inactivosApp[correo]=1;
             }
           });
-          var nInact=Object.keys(inactivosApp).length;
-          if(nInact>0) log('    ℹ️ '+app+': '+nInact+' usuarios inactivos excluidos','linfo');
         }
+
+        // ── Filtrar por columna de licencia: "no hay ninguna licencia asignada" ──
+        if(appLicCol){
+          var SIN_LICENCIA_PATTERNS = [
+            'no hay ninguna licencia',
+            'no license',
+            'sin licencia',
+            'no license assigned',
+            'none',
+            'ninguna'
+          ];
+          ar.forEach(function(r){
+            var licVal = String(r[appLicCol]||'').trim().toLowerCase();
+            var sinLic = !licVal || SIN_LICENCIA_PATTERNS.some(function(p){ return licVal.indexOf(p) >= 0; });
+            if(sinLic){
+              var correo = String(r[aec]||'').trim().toLowerCase();
+              if(correo) inactivosApp[correo]=1;
+            }
+          });
+        }
+
+        var nInact=Object.keys(inactivosApp).length;
+        if(nInact>0) log('    ℹ️ '+app+': '+nInact+' sin licencia activa excluidos','linfo');
 
         // Solo correos que aparecen en el archivo (el filtro de inactivos se aplica al marcar)
         var correos=ar.map(function(r){return String(r[aec]||'').trim().toLowerCase()}).filter(function(c){return c.indexOf('@')>=0});
@@ -1881,26 +1907,30 @@ function buildCostAppList(){
       try { var uc=JSON.parse(localStorage.getItem('gobernanza_app_users')||'{}'); nUsers=uc[app]?uc[app].total:0; } catch(e){}
     }
     var userHint = (hasCol || nUsers>0) ? ' <span style="color:'+(nUsers>0?'#10b981':'#475569')+';font-size:10px">('+nUsers+' usu.)</span>' : '';
-    var period = saved.period||'monthly'; // monthly or annual
-    var annualVal = (period==='annual' && saved.value) ? saved.value : '';
-    var monthlyVal = (period!=='annual' && saved.value) ? saved.value : '';
-    return '<div class="cost-input-row" style="flex-wrap:wrap;gap:6px">'
-      +'<label title="'+app+'" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:210px">'+app+userHint+'</label>'
-      +'<select class="cost-select" id="ctype_'+idx+'" style="width:110px">'
+    var period = saved.period||'monthly';
+    var annualVal = (period==='annual' && saved.value) ? saved.value : (saved.value ? (saved.value*12).toFixed(2) : '');
+    var monthlyVal = saved.value ? saved.value : '';
+    return '<div class="cost-input-row">'
+      // Col 1: App name + user count
+      +'<label title="'+app+'"><span style="font-weight:500;color:#e2e8f0">'+app+'</span>'+userHint+'</label>'
+      // Col 2: Type select
+      +'<select class="cost-select" id="ctype_'+idx+'" style="width:100%">'
       +'<option value="per_user"'+(tipo==='per_user'?' selected':'')+'>$/usuario</option>'
       +'<option value="total"'+(tipo==='total'?' selected':'')+'>Total mes</option>'
       +'</select>'
-      +'<div style="display:flex;flex-direction:column;gap:3px">'
-      +'<div style="display:flex;align-items:center;gap:4px">'
-      +'<span style="font-size:10px;color:#64748b;width:28px">MES</span>'
-      +'<input class="cost-input" type="number" min="0" step="0.01" placeholder="0.00" id="cval_'+idx+'" value="'+monthlyVal+'" oninput="syncAnnual('+idx+')" style="width:100px">'
+      // Col 3: Monthly + Annual stacked
+      +'<div style="display:flex;flex-direction:column;gap:4px">'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<span style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;width:26px;flex-shrink:0">Mes</span>'
+      +'<input class="cost-input" type="number" min="0" step="0.01" placeholder="0.00" id="cval_'+idx+'" value="'+monthlyVal+'" oninput="syncAnnual('+idx+')" style="flex:1;min-width:0">'
       +'</div>'
-      +'<div style="display:flex;align-items:center;gap:4px">'
-      +'<span style="font-size:10px;color:#64748b;width:28px">AÑO</span>'
-      +'<input class="cost-input" type="number" min="0" step="0.01" placeholder="0.00" id="cval_ann_'+idx+'" value="'+annualVal+'" oninput="syncMonthly('+idx+')" style="width:100px;border-color:rgba(16,185,129,.3)">'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<span style="font-size:10px;color:#10b981;text-transform:uppercase;letter-spacing:.5px;width:26px;flex-shrink:0">Año</span>'
+      +'<input class="cost-input" type="number" min="0" step="0.01" placeholder="0.00" id="cval_ann_'+idx+'" value="'+annualVal+'" oninput="syncMonthly('+idx+')" style="flex:1;min-width:0;border-color:rgba(16,185,129,.25);color:#10b981">'
       +'</div>'
       +'</div>'
-      +'<select class="cost-select" id="ccur_'+idx+'">'
+      // Col 4: Currency
+      +'<select class="cost-select" id="ccur_'+idx+'" style="width:100%">'
       +'<option value="USD"'+(cur==='USD'?' selected':'')+'>USD</option>'
       +'<option value="EUR"'+(cur==='EUR'?' selected':'')+'>EUR</option>'
       +'<option value="MXN"'+(cur==='MXN'?' selected':'')+'>MXN</option>'
