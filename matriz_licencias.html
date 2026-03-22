@@ -295,12 +295,12 @@ var CONTRASENA_VALIDA = "Xertica2026";
       </div>
     </div>
     <div class="ucard">
-      <h3>🔑 Control de Licencias Google</h3>
+      <h3>🔑 Licencias Google Workspace</h3>
       <div class="fdrop" id="dropLic">
         <input type="file" accept=".xlsx,.xls" id="fileLic">
         <div class="ficon">🗝️</div>
         <p>Arrastra o haz clic para subir</p>
-        <p style="font-size:11px;margin-top:4px">Control_licencias.xlsx</p>
+        <p style="font-size:11px;margin-top:4px;color:#10b981">✓ Acepta Control_licencias.xlsx <strong>o</strong> User_Download (exportado de Workspace)</p>
         <div class="fn" id="nameLic"></div>
       </div>
     </div>
@@ -619,6 +619,72 @@ function markApp(app, file){
   };
 })();
 
+// ── LICENSE CODE DECODER ──
+var LICENSE_CODE_MAP = {
+  '1010020020': 'Google Workspace Enterprise Plus',
+  '1010020026': 'Google Workspace Enterprise Standard',
+  '1010020029': 'Google Workspace Enterprise Starter',
+  '1010020030': 'Google Workspace Frontline Starter',
+  '1010330002': 'Google Vault',
+  '1010400001': 'Gemini Ultra / AI Ultra',
+  '1010470008': 'Gemini Ultra / AI Ultra'
+};
+var LICENSE_ADDONS = {'1010400001':1,'1010330002':1,'1010470008':1};
+
+function decodeLicense(raw){
+  if(raw===null||raw===undefined||raw==='') return 'Sin licencia';
+  var codes;
+  if(typeof raw === 'number'){
+    codes = [String(Math.round(raw))];
+  } else {
+    codes = String(raw).split(',').map(function(c){ return c.trim().replace(/\.0$/,''); });
+  }
+  var base = null;
+  var addons = [];
+  codes.forEach(function(c){
+    if(!c||c==='nan') return;
+    var name = LICENSE_CODE_MAP[c];
+    if(!name) return;
+    if(LICENSE_ADDONS[c]){
+      if(addons.indexOf(name)<0) addons.push(name);
+    } else {
+      if(!base) base = name;
+    }
+  });
+  if(!base) return 'Sin licencia';
+  var parts = [base].concat(addons);
+  // deduplicate
+  var seen={}, result=[];
+  parts.forEach(function(p){ if(!seen[p]){seen[p]=1;result.push(p);} });
+  return result.join(', ');
+}
+
+// ── TRANSFORM User_Download → Control_licencias format ──
+function transformUserDownload(rows){
+  if(!rows.length) return rows;
+  var keys = Object.keys(rows[0]);
+  var emailCol2 = keys.find(function(k){ return k.indexOf('Email Address')>=0; });
+  var firstCol  = keys.find(function(k){ return k.indexOf('First Name')>=0; });
+  var lastCol   = keys.find(function(k){ return k.indexOf('Last Name')>=0; });
+  var statusCol = keys.find(function(k){ return k.indexOf('Status [READ')>=0; });
+  var licCol    = keys.find(function(k){ return k.indexOf('Licenses [READ')>=0; });
+
+  var transformed = rows.map(function(r){
+    var licName = decodeLicense(r[licCol]);
+    return {
+      'Nombre':   String(r[firstCol]||'').trim(),
+      'Apellido': String(r[lastCol]||'').trim(),
+      'Correo':   String(r[emailCol2]||'').trim().toLowerCase(),
+      'Status':   String(r[statusCol]||'').trim(),
+      'País':     'Sin especificar',
+      'Licencia': licName
+    };
+  }).filter(function(r){ return r['Correo'] && r['Correo'].indexOf('@')>=0; });
+
+  log('✅ User_Download transformado: '+transformed.length+' usuarios procesados','lok');
+  return transformed;
+}
+
 // ── EXCEL UTILS ──
 function readXL(file){
   return new Promise(function(res,rej){
@@ -720,10 +786,20 @@ document.getElementById('btnRun').onclick=async function(){
     });
 
     // 2. Licencias
-    log('🔑 Cargando Control de Licencias...');
+    log('🔑 Cargando Licencias Google Workspace...');
     var lrows=await readXL(fLic);
-    var lec=emailCol(lrows);
     var lk=Object.keys(lrows[0]||{});
+
+    // ── Detectar si es User_Download de Workspace o Control_licencias manual ──
+    var isUserDownload = lk.some(function(k){ return k.indexOf('First Name')>=0 || k.indexOf('Org Unit')>=0; });
+
+    if(isUserDownload){
+      log('📥 Formato detectado: User_Download de Google Workspace — procesando automáticamente...','linfo');
+      lrows = transformUserDownload(lrows);
+      lk = Object.keys(lrows[0]||{});
+    }
+
+    var lec=emailCol(lrows);
     var ltc=fcol(lk,['licen','license','licencia','tipo']);
     var lnc=fcol(lk,['first name','nombre','first']);
     var lac=fcol(lk,['last name','apellido','last','surname']);
