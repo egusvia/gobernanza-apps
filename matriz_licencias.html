@@ -1707,6 +1707,13 @@ function openCost(){
   document.getElementById('costPanel').style.display='block';
   buildCostAppList();
   renderCostTable();
+  // Debug: log what we have
+  console.log('dfInt length:', dfInt.length, 'dfExt length:', dfExt.length);
+  console.log('allApps:', allApps);
+  console.log('appCosts:', appCosts);
+  if(dfInt.length > 0){
+    console.log('Sample dfInt keys:', Object.keys(dfInt[0]));
+  }
 }
 function closeCost(){
   document.getElementById('costPanel').style.display='none';
@@ -1730,8 +1737,11 @@ function buildCostAppList(){
     var tipo = saved.type||'per_user';
     var val  = saved.value||'';
     var cur  = saved.currency||'USD';
+    // Count users for this app right now
+    var nUsers = dfInt.concat(dfExt).filter(function(r){return r[app]==='X';}).length;
+    var userHint = dfInt.length > 0 ? ' <span style="color:'+(nUsers>0?'#10b981':'#475569')+';font-size:10px">('+nUsers+' usuarios)</span>' : '';
     return '<div class="cost-input-row">'
-      +'<label title="'+app+'" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+app+'</label>'
+      +'<label title="'+app+'" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+app+userHint+'</label>'
       +'<select class="cost-select" id="ctype_'+idx+'">'
       +'<option value="per_user"'+(tipo==='per_user'?' selected':'')+'>$/usuario</option>'
       +'<option value="total"'+(tipo==='total'?' selected':'')+'>Total mes</option>'
