@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría de Licencias — Xertica</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#00050f;color:#e2e8f0;min-height:100vh}
+
+/* ── LOGIN ── */
+#loginScreen{
+  position:fixed;inset:0;
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;
+  height:100vh;
+  width:100vw;
+}
+.lcard{
+  background:rgba(10,18,35,0.82);border:1px solid rgba(0,212,255,0.2);border-radius:16px;
+  padding:48px 40px;width:100%;max-width:420px;text-align:center;
+  box-shadow:0 0 80px rgba(0,212,255,.15), inset 0 0 40px rgba(0,0,0,0.3);
+  backdrop-filter:blur(12px);
+  position:relative;z-index:10000;
+}
+.llogo{font-size:28px;font-weight:700;color:#00d4ff;margin-bottom:4px;letter-spacing:-1px}
+.llogo span{color:#e2e8f0}
+.lsub{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:2px;margin-bottom:36px}
+.lfield{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;text-align:left}
+.lfield label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.lfield input{
+  background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;
+  font-size:15px;padding:12px 16px;border-radius:8px;outline:none;
+  transition:border-color .2s;width:100%
+}
+.lfield input:focus{border-color:#00d4ff}
+#lerr{font-size:12px;color:#ef4444;min-height:18px;margin-bottom:12px;display:none}
+.lbtn{
+  width:100%;background:linear-gradient(135deg,#0099cc,#00d4ff);
+  color:#000;border:none;font-weight:700;font-size:14px;
+  letter-spacing:1px;padding:14px;border-radius:8px;cursor:pointer;
+  transition:all .2s;margin-top:4px
+}
+.lbtn:hover{box-shadow:0 0 40px rgba(0,212,255,.4);transform:translateY(-1px)}
+.lhint{margin-top:20px;font-size:11px;color:#64748b;line-height:1.6}
+.lhint code{background:#1a2235;padding:2px 6px;border-radius:4px;border:1px solid #1f2d42;color:#f59e0b;font-size:11px}
+
+/* ── APP SHELL (hidden until login) ── */
+#appShell{display:none;background:#0a0f1a;min-height:100vh;position:relative;z-index:2}
+
+/* ── HEADER ── */
+header{
+  background:#111827;border-bottom:1px solid #1f2d42;
+  padding:18px 28px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:100;
+}
+.hlogo{font-size:20px;font-weight:700;color:#00d4ff;letter-spacing:-1px}
+.hlogo span{color:#e2e8f0}
+.htitle{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:2px}
+.hright{margin-left:auto;display:flex;gap:12px;align-items:center}
+.badge{font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid;font-weight:600}
+.bb{color:#00d4ff;border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.08)}
+.ba{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+.bg{color:#10b981;border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08)}
+.blogout{
+  background:transparent;border:1px solid #1f2d42;color:#64748b;
+  font-size:11px;padding:6px 12px;border-radius:6px;cursor:pointer;
+  transition:all .2s;letter-spacing:1px
+}
+.blogout:hover{border-color:#ef4444;color:#ef4444}
+
+/* ── CONTAINER ── */
+.wrap{max-width:1600px;margin:0 auto;padding:28px}
+
+/* ── UPLOAD CARDS ── */
+.ugrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+.ucard{background:#111827;border:1px solid #1f2d42;border-radius:12px;padding:22px}
+.ucard h3{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#00d4ff;margin-bottom:14px}
+.fdrop{
+  border:2px dashed #1f2d42;border-radius:8px;padding:24px;
+  text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden
+}
+.fdrop:hover,.fdrop.drag{border-color:#00d4ff;background:rgba(0,212,255,.04)}
+.fdrop.loaded{border-color:#10b981;border-style:solid}
+.fdrop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.fdrop p{font-size:13px;color:#64748b}
+.fdrop .fn{font-size:12px;color:#10b981;margin-top:6px}
+.ficon{font-size:26px;margin-bottom:8px}
+
+/* ── APPS GRID ── */
+.agrid{background:#111827;border:1px solid #1f2d42;border-radius:12px;padding:22px;margin-bottom:24px}
+.agrid h3{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;margin-bottom:18px}
+.alist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.aitem{
+  display:flex;align-items:center;gap:10px;
+  background:#1a2235;border:1px solid #1f2d42;border-radius:8px;
+  padding:10px 12px;transition:all .2s;cursor:pointer;position:relative
+}
+.aitem:hover{border-color:rgba(245,158,11,.4)}
+.aitem.loaded{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.06)}
+.aitem input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.aicon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;background:#111827;border:1px solid #1f2d42;flex-shrink:0}
+.aname{font-size:13px;font-weight:500;flex:1}
+.ast{font-size:10px;color:#64748b}
+.ast.ok{color:#10b981}
+
+/* ── RUN ── */
+.runsec{text-align:center;margin-bottom:32px}
+.btnrun{
+  background:linear-gradient(135deg,#0099cc,#00d4ff);color:#000;border:none;
+  font-weight:700;font-size:15px;letter-spacing:1px;padding:15px 52px;
+  border-radius:8px;cursor:pointer;transition:all .2s;
+  box-shadow:0 0 40px rgba(0,212,255,.25)
+}
+.btnrun:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 60px rgba(0,212,255,.4)}
+.btnrun:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ── LOG ── */
+#logbox{
+  background:#111827;border:1px solid #1f2d42;border-radius:8px;
+  padding:14px;font-family:monospace;font-size:12px;
+  max-height:170px;overflow-y:auto;margin-bottom:24px;display:none
+}
+.lok{color:#10b981}.lwarn{color:#f59e0b}.lerr{color:#ef4444}.linfo{color:#00d4ff}
+
+/* ── STATS ── */
+#statsrow{display:none;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.scard{background:#111827;border:1px solid #1f2d42;border-radius:10px;padding:16px}
+.slabel{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.sval{font-size:26px;font-weight:700}
+.sv-b{color:#00d4ff}.sv-a{color:#f59e0b}.sv-g{color:#10b981}
+
+/* ── APP SUMMARY ── */
+#appsummary{display:none;background:#111827;border:1px solid #1f2d42;border-radius:12px;padding:22px;margin-bottom:24px}
+#appsummary h3{font-size:11px;letter-spacing:2px;color:#f59e0b;text-transform:uppercase;margin-bottom:14px}
+.abrow{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.abname{font-size:12px;width:150px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.abtrack{flex:1;background:#1a2235;height:6px;border-radius:3px;overflow:hidden}
+.abfill{height:100%;border-radius:3px;background:linear-gradient(90deg,#0099cc,#00d4ff);transition:width .4s}
+.abcnt{font-size:11px;color:#64748b;width:40px;text-align:right;flex-shrink:0}
+
+/* ── TABS ── */
+#tabs{display:none;gap:4px;background:#111827;border:1px solid #1f2d42;border-radius:10px;padding:5px;margin-bottom:18px;width:fit-content}
+.tab{font-size:12px;padding:8px 18px;border-radius:6px;cursor:pointer;border:none;background:transparent;color:#64748b;transition:all .2s;letter-spacing:1px}
+.tab.active{background:#1a2235;color:#e2e8f0;border:1px solid #1f2d42}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.swrap{position:relative;flex:1;min-width:240px}
+.sicon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#64748b;font-size:13px;pointer-events:none}
+.sinput{
+  width:100%;background:#111827;border:1px solid #1f2d42;color:#e2e8f0;
+  font-size:14px;padding:10px 12px 10px 36px;border-radius:8px;outline:none;transition:border-color .2s
+}
+.sinput:focus{border-color:#00d4ff}
+.sinput::placeholder{color:#64748b}
+select.fsel{background:#111827;border:1px solid #1f2d42;color:#e2e8f0;font-size:13px;padding:10px 12px;border-radius:8px;outline:none;cursor:pointer}
+.btnexp{background:transparent;border:1px solid #1f2d42;color:#e2e8f0;font-size:12px;padding:10px 16px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.btnexp:hover{border-color:#10b981;color:#10b981}
+
+/* ── TABLE ── */
+#twrap{display:none;background:#111827;border:1px solid #1f2d42;border-radius:12px;overflow:hidden}
+.tscroll{overflow-x:auto;max-height:580px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:10}
+thead th{background:#1a2235;padding:11px 13px;text-align:left;font-size:11px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #1f2d42;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:#e2e8f0}
+tbody tr{border-bottom:1px solid rgba(31,45,66,.5);transition:background .15s}
+tbody tr:hover{background:rgba(0,212,255,.04)}
+tbody td{padding:9px 13px;white-space:nowrap}
+.xi{display:inline-block;background:rgba(0,212,255,.15);color:#00d4ff;font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid rgba(0,212,255,.3)}
+.xe{display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid rgba(245,158,11,.3)}
+.einact{color:#ef4444;font-size:11px}
+.eact{color:#10b981;font-size:11px}
+.cntbadge{font-weight:700;padding:2px 8px;border-radius:10px;font-size:12px}
+.ch{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.cm{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.cl{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3)}
+.emsg{text-align:center;padding:36px;color:#64748b;font-size:14px}
+.pag{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid #1f2d42}
+.pginfo{font-size:12px;color:#64748b}
+.btnpg{background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .15s}
+.btnpg:hover:not(:disabled){border-color:#00d4ff;color:#00d4ff}
+.btnpg:disabled{opacity:.3;cursor:default}
+
+/* ── MODAL ── */
+.movl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.movl.open{display:flex}
+.mbox{background:#111827;border:1px solid #1f2d42;border-radius:16px;padding:30px;max-width:620px;width:90%;max-height:80vh;overflow-y:auto;position:relative}
+.mclose{position:absolute;top:14px;right:14px;background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:14px}
+.mname{font-size:18px;margin-bottom:4px}
+.memail{font-size:13px;color:#00d4ff;font-family:monospace;margin-bottom:18px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.ditem label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px}
+.ditem span{font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-size:11px;padding:4px 10px;border-radius:4px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#00d4ff}
+.chip.ext{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:#f59e0b}
+.sectitle{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#111827}
+::-webkit-scrollbar-thumb{background:#1f2d42;border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ── MATRIX BACKGROUND ── -->
+<canvas id="matrixCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none"></canvas>
+<div id="matrixOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,10,20,0.55) 0%, rgba(0,5,15,0.85) 100%)"></div>
+
+<!-- ══════════════════════════════════
+     CREDENCIALES — edita estas líneas
+     ══════════════════════════════════ -->
+<script>
+var USUARIO_VALIDO    = "admin";
+var CONTRASENA_VALIDA = "Xertica2026";
+</script>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="lcard">
+    <div style="font-size:32px;font-weight:800;color:#ffffff;letter-spacing:-1px;margin-bottom:10px">Xertica<span style="font-weight:300">.ai</span></div>
+    <div class="lsub">Gobernanza de Aplicaciones V1</div>
+    <div class="lfield">
+      <label>Usuario</label>
+      <input type="text" id="luser" placeholder="usuario" autocomplete="username">
+    </div>
+    <div class="lfield">
+      <label>Contraseña</label>
+      <input type="password" id="lpass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="lerr">⚠ Usuario o contraseña incorrectos</div>
+    <button class="lbtn" id="lbtn">INGRESAR →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+
+<header>
+  <div class="hlogo">Xertica<span>.ai</span></div>
+  <div class="htitle">Gobernanza de Aplicaciones — Matriz de Aplicaciones</div>
+  <div class="hright">
+    <span class="badge bb" id="badgeInt">0 internos</span>
+    <span class="badge ba" id="badgeExt">0 externos</span>
+    <span class="badge bg" id="badgeApp">0 apps</span>
+    <button class="blogout" id="blogout">⎋ Salir</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="ugrid">
+    <div class="ucard">
+      <h3>📋 BambooRH — Base de empleados</h3>
+      <div class="fdrop" id="dropBamboo">
+        <input type="file" accept=".xlsx,.xls" id="fileBamboo">
+        <div class="ficon">📊</div>
+        <p>Arrastra o haz clic para subir</p>
+        <p style="font-size:11px;margin-top:4px">BambooRH_users.xlsx</p>
+        <div class="fn" id="nameBamboo"></div>
+      </div>
+    </div>
+    <div class="ucard">
+      <h3>🔑 Control de Licencias Google</h3>
+      <div class="fdrop" id="dropLic">
+        <input type="file" accept=".xlsx,.xls" id="fileLic">
+        <div class="ficon">🗝️</div>
+        <p>Arrastra o haz clic para subir</p>
+        <p style="font-size:11px;margin-top:4px">Control_licencias.xlsx</p>
+        <div class="fn" id="nameLic"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="agrid">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <h3 style="margin-bottom:0">🧩 Archivos de Plataformas</h3>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="bulkCount" style="font-size:12px;color:#64748b"></span>
+        <label style="display:flex;align-items:center;gap:8px;background:#1a2235;border:1px solid #f59e0b;color:#f59e0b;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s" onmouseover="this.style.background='rgba(245,158,11,.1)'" onmouseout="this.style.background='#1a2235'">
+          📂 CARGA MASIVA
+          <input type="file" accept=".xlsx,.xls" multiple id="fileMasivo" style="display:none">
+        </label>
+      </div>
+    </div>
+    <div class="alist" id="alist"></div>
+  </div>
+
+  <div class="runsec">
+    <button class="btnrun" id="btnRun" disabled>▶ GENERAR MATRIZ</button>
+    <p style="margin-top:10px;font-size:12px;color:#64748b">Carga BambooRH y Licencias para habilitar. Las apps son opcionales.</p>
+  </div>
+
+  <div id="logbox"></div>
+
+  <div id="statsrow" style="display:none;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px">
+    <div class="scard"><div class="slabel">Internos (BambooRH)</div><div class="sval sv-b" id="stInt">0</div></div>
+    <div class="scard"><div class="slabel">Externos detectados</div><div class="sval sv-a" id="stExt">0</div></div>
+    <div class="scard"><div class="slabel">Tipos licencia Google</div><div class="sval sv-g" id="stGoo">0</div></div>
+    <div class="scard"><div class="slabel">Apps cargadas</div><div class="sval sv-b" id="stAps">0</div></div>
+    <div class="scard"><div class="slabel">Licencias totales</div><div class="sval sv-a" id="stLic">0</div></div>
+  </div>
+
+  <div id="appsummary">
+    <h3>📊 Distribución por plataforma</h3>
+    <div id="appbars"></div>
+  </div>
+
+  <div id="tabs" style="display:none">
+    <button class="tab active" data-tab="internos">Usuarios Internos</button>
+    <button class="tab" data-tab="externos">Usuarios Externos</button>
+  </div>
+
+  <div class="toolbar" id="toolbar" style="display:none">
+    <div class="swrap">
+      <span class="sicon">🔍</span>
+      <input class="sinput" type="text" id="searchInput" placeholder="Buscar por nombre, correo o país...">
+    </div>
+    <select class="fsel" id="filterPais"><option value="">Todos los países</option></select>
+    <select class="fsel" id="filterEst">
+      <option value="">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+    <select class="fsel" id="filterApp" style="max-width:200px">
+      <option value="">Todas las apps</option>
+    </select>
+    <button class="btnexp" id="btnExp">⬇ Exportar CSV</button>
+  </div>
+
+  <div id="twrap">
+    <div class="tscroll"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+    <div class="pag">
+      <button class="btnpg" id="btnPrev">← Anterior</button>
+      <span class="pginfo" id="pginfo"></span>
+      <button class="btnpg" id="btnNext">Siguiente →</button>
+    </div>
+  </div>
+
+</div><!-- .wrap -->
+</div><!-- #appShell -->
+
+<!-- MODAL -->
+<div class="movl" id="movl">
+  <div class="mbox">
+    <button class="mclose" id="mclose">✕</button>
+    <div class="mname" id="mname">—</div>
+    <div class="memail" id="memail">—</div>
+    <div class="dgrid">
+      <div class="ditem"><label>País</label><span id="mpais">—</span></div>
+      <div class="ditem"><label>Estado</label><span id="mest">—</span></div>
+      <div class="ditem"><label>Tipo</label><span id="mtipo">—</span></div>
+      <div class="ditem"><label>Licencias</label><span id="mcnt">—</span></div>
+    </div>
+    <div class="sectitle">Plataformas con acceso</div>
+    <div class="chips" id="mchips"></div>
+  </div>
+</div>
+
+<!-- SheetJS al final para no bloquear render -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+// ── CONFIG ──
+var DOMINIO = "xertica.com";
+var INACTIVOS = {"inactive":1,"inactivo":1};
+var APPS = {
+  "Salesforce":"salesforce_user.xlsx","Looker":"Looker_users.xlsx",
+  "Constant Contact":"Constantcontact_users.xlsx","Heygen":"Heygen_users.xlsx",
+  "DevOps":"Dev0ps_users.xlsx","Docusign":"Docusign_user.xlsx",
+  "Adobe":"Adobe_users.xlsx","AgentSpace (App)":"Agentspace_users.xlsx",
+  "Canva":"Canva_users.xlsx","Figma":"Figma_users.xlsx",
+  "Freshsales":"Freshsales_users.xlsx","Freshservice BR":"FreshserviceBR_users.xlsx",
+  "GitHub":"GitHub_users.xlsx","Jira":"Jira_users.xlsx","Miro":"Miro_users.xlsx",
+  "Aircall":"Aircall_users.xlsx","Apollo":"Apollo_users.xlsx",
+  "Freshservice SPLA":"freshserviceSPLA_users.xlsx","3CX":"3cx_users.xlsx",
+  "Lusha":"Lusha_users.xlsx","Smartsheet":"Smartsheet_users.xlsx",
+  "Tactig":"Tactig_users.xlsx","Zoom":"zoom_users.xlsx",
+  "Office 365":"Office365_users.xlsx","WithSecure":"WithSecure_users.xlsx",
+  "Lucidchart":"Lucidchart_users.xlsx","Webflow":"Webflow_users.xlsx",
+  "Octadesk":"Octadesk_users.xlsx"
+};
+var ICONS = {
+  "Salesforce":"☁️","Looker":"📈","Constant Contact":"📧","Heygen":"🎬",
+  "DevOps":"⚙️","Docusign":"📝","Adobe":"🅰️","AgentSpace (App)":"🤖",
+  "Canva":"🎨","Figma":"🖼️","Freshsales":"💼","Freshservice BR":"🛠️",
+  "GitHub":"🐙","Jira":"🔵","Miro":"🗂️","Aircall":"📞","Apollo":"🚀",
+  "Freshservice SPLA":"🔧","3CX":"📱","Lusha":"🔍","Smartsheet":"📋",
+  "Tactig":"🎯","Zoom":"🎥","Office 365":"🏢","WithSecure":"🔒",
+  "Lucidchart":"📐","Webflow":"🌐","Octadesk":"💬"
+};
+
+// ── STATE ──
+var fBamboo=null, fLic=null, appFiles={};
+var dfInt=[], dfExt=[], colsGoogle=[], allApps=[];
+var curTab='internos', filtered=[], curPage=1, PAGE=50, sortC=null, sortD=1;
+
+// ── LOGIN ──
+function doLogin(){
+  var u=document.getElementById('luser').value.trim();
+  var p=document.getElementById('lpass').value;
+  var err=document.getElementById('lerr');
+  if(u===USUARIO_VALIDO && p===CONTRASENA_VALIDA){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appShell').style.display='block';
+    document.getElementById('matrixCanvas').style.display='none';
+    document.getElementById('matrixOverlay').style.display='none';
+    err.style.display='none';
+  } else {
+    err.style.display='block';
+    document.getElementById('lpass').value='';
+    document.getElementById('lpass').focus();
+  }
+}
+document.getElementById('lbtn').onclick=doLogin;
+document.getElementById('luser').onkeydown=function(e){if(e.key==='Enter')doLogin()};
+document.getElementById('lpass').onkeydown=function(e){if(e.key==='Enter')doLogin()};
+document.getElementById('blogout').onclick=function(){
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('matrixCanvas').style.display='block';
+  document.getElementById('matrixOverlay').style.display='block';
+  document.getElementById('luser').value='';
+  document.getElementById('lpass').value='';
+};
+
+// ── FILE HANDLING ──
+function setFile(key, file){
+  if(key==='bamboo'){ fBamboo=file; document.getElementById('dropBamboo').classList.add('loaded'); document.getElementById('nameBamboo').textContent='✓ '+file.name; }
+  else { fLic=file; document.getElementById('dropLic').classList.add('loaded'); document.getElementById('nameLic').textContent='✓ '+file.name; }
+  document.getElementById('btnRun').disabled=!(fBamboo&&fLic);
+}
+document.getElementById('fileBamboo').onchange=function(){if(this.files[0])setFile('bamboo',this.files[0])};
+document.getElementById('fileLic').onchange=function(){if(this.files[0])setFile('licencias',this.files[0])};
+['dropBamboo','dropLic'].forEach(function(id){
+  var el=document.getElementById(id);
+  var key=id==='dropBamboo'?'bamboo':'licencias';
+  el.ondragover=function(e){e.preventDefault();el.classList.add('drag')};
+  el.ondragleave=function(){el.classList.remove('drag')};
+  el.ondrop=function(e){e.preventDefault();el.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)setFile(key,f)};
+});
+
+// ── BUILD APPS LIST ──
+function markApp(app, file){
+  appFiles[app]=file;
+  var st=document.getElementById('as_'+app);
+  var it=document.getElementById('ai_'+app);
+  if(st){st.textContent='✓ '+file.name;st.className='ast ok';}
+  if(it)it.classList.add('loaded');
+}
+
+(function(){
+  var list=document.getElementById('alist');
+  Object.keys(APPS).forEach(function(app){
+    var d=document.createElement('div');
+    d.className='aitem'; d.id='ai_'+app;
+    d.innerHTML='<div class="aicon">'+(ICONS[app]||'📦')+'</div><div class="aname">'+app+'</div><div class="ast" id="as_'+app+'">sin cargar</div><input type="file" accept=".xlsx,.xls">';
+    d.querySelector('input').onchange=function(){
+      var f=this.files[0]; if(!f)return;
+      markApp(app,f);
+    };
+    list.appendChild(d);
+  });
+
+  // ── CARGA MASIVA ──
+  document.getElementById('fileMasivo').onchange=function(){
+    var files=Array.from(this.files);
+    var matched=0, unmatched=[];
+    files.forEach(function(file){
+      var fname=file.name.toLowerCase();
+      // Buscar match por nombre de archivo en APPS config
+      var found=Object.keys(APPS).find(function(app){
+        return fname===APPS[app].toLowerCase();
+      });
+      // Si no matchea exacto, intentar match parcial por nombre de app
+      if(!found){
+        found=Object.keys(APPS).find(function(app){
+          var appNorm=app.toLowerCase().replace(/[^a-z0-9]/g,'');
+          var fileNorm=fname.replace(/[^a-z0-9]/g,'');
+          return fileNorm.indexOf(appNorm)>=0||appNorm.indexOf(fileNorm.replace('.xlsx','').replace('.xls',''))>=0;
+        });
+      }
+      if(found){
+        markApp(found,file);
+        matched++;
+      } else {
+        unmatched.push(file.name);
+      }
+    });
+    var msg=matched+' de '+files.length+' archivos reconocidos';
+    if(unmatched.length) msg+=' (sin reconocer: '+unmatched.join(', ')+')';
+    document.getElementById('bulkCount').textContent=msg;
+    document.getElementById('bulkCount').style.color=unmatched.length?'#f59e0b':'#10b981';
+  };
+})();
+
+// ── EXCEL UTILS ──
+function readXL(file){
+  return new Promise(function(res,rej){
+    var r=new FileReader();
+    r.onload=function(e){
+      try{
+        var wb=XLSX.read(e.target.result,{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        res(XLSX.utils.sheet_to_json(ws,{defval:''}));
+      }catch(err){rej(err)}
+    };
+    r.onerror=rej;
+    r.readAsArrayBuffer(file);
+  });
+}
+function emailCol(rows){
+  if(!rows.length)return null;
+  var keys=Object.keys(rows[0]);
+  var pats=['email','e-mail','correo','mail','useremail','username'];
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i];
+    if(pats.some(function(p){return k.toLowerCase().indexOf(p)>=0})){
+      var s=rows.slice(0,15);
+      if(s.some(function(r){return String(r[k]||'').indexOf('@')>=0}))return k;
+    }
+  }
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i];
+    var s=rows.slice(0,15);
+    if(s.some(function(r){return String(r[k]||'').indexOf('@')>=0}))return k;
+  }
+  return null;
+}
+function fcol(keys,words){
+  return keys.find(function(k){return words.some(function(w){return k.toLowerCase().indexOf(w)>=0})})||null;
+}
+function norm(s){
+  if(!s)return'';
+  return s.toString().toLowerCase().trim()
+    .replace(/[áäà]/g,'a').replace(/[éëè]/g,'e').replace(/[íïì]/g,'i')
+    .replace(/[óöò]/g,'o').replace(/[úüù]/g,'u').replace(/ñ/g,'n')
+    .replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ');
+}
+function variations(nombre,correo){
+  var s={};
+  if(correo)s[correo.toString().trim().toLowerCase()]=1;
+  if(nombre){
+    var parts=norm(nombre).split(' ');
+    if(parts.length>=2){
+      var n=parts[0],a=parts[1];
+      s[n+'.'+a+'@'+DOMINIO]=1;
+      s[n+a+'@'+DOMINIO]=1;
+      s[n[0]+a+'@'+DOMINIO]=1;
+    }
+  }
+  return s;
+}
+
+// ── LOG ──
+function log(msg,type){
+  var b=document.getElementById('logbox');
+  b.style.display='block';
+  var d=document.createElement('div');
+  d.className=type||'linfo';
+  var t=new Date().toLocaleTimeString('es-PE');
+  d.textContent='['+t+'] '+msg;
+  b.appendChild(d);
+  b.scrollTop=b.scrollHeight;
+}
+
+// ── MAIN ──
+document.getElementById('btnRun').onclick=async function(){
+  var btn=this; btn.disabled=true; btn.textContent='⏳ Procesando...';
+  document.getElementById('logbox').innerHTML='';
+  try{
+    // 1. Bamboo
+    log('📋 Cargando BambooRH...');
+    var brows=await readXL(fBamboo);
+    var bec=emailCol(brows);
+    if(!bec)throw new Error('BambooRH: sin columna de correo');
+    var bk=Object.keys(brows[0]||{});
+    var bnc=fcol(bk,['nombre','name','first name','firstname']);
+    var bpc=fcol(bk,['país','pais','ubicaci','country','location']);
+    var bsc=fcol(bk,['estado','status']);
+    dfInt=brows.map(function(r){return{
+      'Correo Electrónico':String(r[bec]||'').trim().toLowerCase(),
+      'Nombre':bnc?String(r[bnc]||'N/A'):'N/A',
+      'País':bpc?String(r[bpc]||'Desconocido'):'Desconocido',
+      'Estado':bsc?String(r[bsc]||'N/A'):'N/A',
+      'Bamboo':'X'
+    }});
+    log('✅ BambooRH: '+dfInt.length+' empleados','lok');
+
+    // Build varMap
+    var varMap={};
+    dfInt.forEach(function(row,idx){
+      var vs=variations(row['Nombre'],row['Correo Electrónico']);
+      Object.keys(vs).forEach(function(v){varMap[v]=idx});
+    });
+
+    // 2. Licencias
+    log('🔑 Cargando Control de Licencias...');
+    var lrows=await readXL(fLic);
+    var lec=emailCol(lrows);
+    var lk=Object.keys(lrows[0]||{});
+    var ltc=fcol(lk,['licen','license','licencia','tipo']);
+    var lnc=fcol(lk,['first name','nombre','first']);
+    var lac=fcol(lk,['last name','apellido','last','surname']);
+    var lpc=fcol(lk,['país','pais','ubicaci','country']);
+    var lsc=fcol(lk,['status']);
+    if(!lec||!ltc)throw new Error('Control_licencias: falta columna correo o licencia');
+
+    var tiposG={}; 
+    lrows.forEach(function(r){
+      String(r[ltc]||'').split(',').forEach(function(p){
+        p=p.trim();if(p&&p.toLowerCase()!=='sin licencia')tiposG[p]=1;
+      });
+    });
+    colsGoogle=Object.keys(tiposG).sort().map(function(t){return'Google: '+t});
+    colsGoogle.forEach(function(c){dfInt.forEach(function(r){if(!(c in r))r[c]=''})});
+
+    dfExt=[]; var extMap={};
+    lrows.forEach(function(r){
+      var correo=String(r[lec]||'').trim().toLowerCase();
+      if(correo.indexOf('@')<0)return;
+      var tipos=ltc?String(r[ltc]||'').split(',').map(function(p){return p.trim()}).filter(function(p){return p&&p.toLowerCase()!=='sin licencia'}):[];
+      if(correo in varMap){
+        var idx=varMap[correo];
+        tipos.forEach(function(t){dfInt[idx]['Google: '+t]='X'});
+      } else {
+        if(!(correo in extMap)){
+          var n=lnc?String(r[lnc]||'').trim():'';
+          var a=lac?String(r[lac]||'').trim():'';
+          var nm=[n,a].filter(Boolean).join(' ')||'N/A';
+          var st=lsc?String(r[lsc]||'').trim():'Desconocido';
+          var pa=lpc?String(r[lpc]||'').trim():'Desconocido';
+          extMap[correo]={'Correo Electrónico':correo,'Nombre':nm,'País':pa||'Desconocido','Estado':st||'Desconocido','Tipo de Usuario':'Externo'};
+          colsGoogle.forEach(function(c){extMap[correo][c]=''});
+        }
+        tipos.forEach(function(t){extMap[correo]['Google: '+t]='X'});
+      }
+    });
+    dfExt=Object.values(extMap);
+    var extVarMap={};
+    dfExt.forEach(function(r,i){extVarMap[r['Correo Electrónico']]=i});
+    log('✅ Google: '+colsGoogle.length+' tipos | '+dfExt.length+' externos','lok');
+
+    // 3. Apps
+    allApps=[]; var appsLoaded=0;
+    for(var app in appFiles){
+      appsLoaded++;
+      try{
+        log('🔄 Procesando '+app+'...');
+        var ar=await readXL(appFiles[app]);
+        var aec=emailCol(ar);
+        if(!aec){log('⚠️ '+app+': sin columna correo','lwarn');continue}
+        var correos=ar.map(function(r){return String(r[aec]||'').trim().toLowerCase()}).filter(function(c){return c.indexOf('@')>=0});
+        dfInt.forEach(function(r){if(!(app in r))r[app]=''});
+        dfExt.forEach(function(r){if(!(app in r))r[app]=''});
+        var ni=0,ne=0;
+        correos.forEach(function(c){
+          if(c in varMap){dfInt[varMap[c]][app]='X';ni++}
+          if(c in extVarMap){dfExt[extVarMap[c]][app]='X';ne++}
+        });
+        log('✅ '+app+': '+ni+' int | '+ne+' ext','lok');
+        allApps.push(app);
+      }catch(e){log('❌ Error '+app+': '+e.message,'lerr')}
+    }
+
+    // 4. Contadores
+    var colsAll=colsGoogle.concat(allApps);
+    dfInt.forEach(function(r){
+      var inact=INACTIVOS[String(r['Estado']||'').toLowerCase().trim()];
+      var s=colsAll.filter(function(c){return r[c]==='X'}).length;
+      r['Contador Licencias']=s+(r['Bamboo']==='X'&&!inact?1:0);
+    });
+    dfExt.forEach(function(r){
+      r['Contador Licencias']=colsAll.filter(function(c){return r[c]==='X'}).length;
+    });
+
+    showStats(appsLoaded,colsAll);
+    showResults();
+    log('🎉 ¡Proceso completado!','lok');
+  }catch(e){log('❌ '+e.message,'lerr')}
+  finally{btn.disabled=false;btn.textContent='▶ GENERAR MATRIZ'}
+};
+
+// ── STATS ──
+function showStats(appsLoaded,colsAll){
+  document.getElementById('stInt').textContent=dfInt.length;
+  document.getElementById('stExt').textContent=dfExt.length;
+  document.getElementById('stGoo').textContent=colsGoogle.length;
+  document.getElementById('stAps').textContent=appsLoaded;
+  var tot=dfInt.concat(dfExt).reduce(function(s,r){return s+(r['Contador Licencias']||0)},0);
+  document.getElementById('stLic').textContent=tot;
+  document.getElementById('badgeInt').textContent=dfInt.length+' internos';
+  document.getElementById('badgeExt').textContent=dfExt.length+' externos';
+  document.getElementById('badgeApp').textContent=(colsGoogle.length+appsLoaded)+' licencias';
+  document.getElementById('statsrow').style.display='grid';
+
+  // App bars
+  var bars=document.getElementById('appbars'); bars.innerHTML='';
+  var all=dfInt.concat(dfExt);
+  var counts=colsAll.map(function(c){return{n:c,v:all.filter(function(r){return r[c]==='X'}).length}})
+    .filter(function(x){return x.v>0}).sort(function(a,b){return b.v-a.v});
+  var mx=counts[0]?counts[0].v:1;
+  counts.forEach(function(x){
+    var row=document.createElement('div'); row.className='abrow';
+    row.innerHTML='<div class="abname" title="'+x.n+'">'+x.n+'</div><div class="abtrack"><div class="abfill" style="width:'+(x.v/mx*100).toFixed(1)+'%"></div></div><div class="abcnt">'+x.v+'</div>';
+    bars.appendChild(row);
+  });
+  document.getElementById('appsummary').style.display='block';
+}
+
+// ── RESULTS ──
+function showResults(){
+  document.getElementById('tabs').style.display='flex';
+  document.getElementById('toolbar').style.display='flex';
+  document.getElementById('twrap').style.display='block';
+  // Populate pais filter
+  var all=dfInt.concat(dfExt);
+  var paises=[...new Set(all.map(function(r){return r['País']}).filter(Boolean))].sort();
+  var sel=document.getElementById('filterPais');
+  sel.innerHTML='<option value="">Todos los países</option>';
+  paises.forEach(function(p){sel.innerHTML+='<option>'+p+'</option>'});
+  // Populate app filter with all license columns (google + apps)
+  var appSel=document.getElementById('filterApp');
+  var colsAll2=colsGoogle.concat(allApps);
+  appSel.innerHTML='<option value="">Todas las apps</option>';
+  colsAll2.forEach(function(c){appSel.innerHTML+='<option value="'+c+'">'+c+'</option>'});
+  switchTab('internos');
+}
+
+// ── TABS ──
+document.getElementById('tabs').addEventListener('click',function(e){
+  if(e.target.classList.contains('tab')){
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+    e.target.classList.add('active');
+    switchTab(e.target.dataset.tab);
+  }
+});
+function switchTab(tab){
+  curTab=tab; curPage=1; sortC=null;
+  doFilter();
+}
+
+// ── FILTER & RENDER ──
+document.getElementById('searchInput').oninput=doFilter;
+document.getElementById('filterPais').onchange=doFilter;
+document.getElementById('filterEst').onchange=doFilter;
+document.getElementById('filterApp').onchange=doFilter;
+
+function doFilter(){
+  var q=document.getElementById('searchInput').value.toLowerCase();
+  var pais=document.getElementById('filterPais').value;
+  var est=document.getElementById('filterEst').value;
+  var app=document.getElementById('filterApp').value;
+  var data=curTab==='internos'?dfInt:dfExt;
+  filtered=data.filter(function(r){
+    var mq=!q||(r['Correo Electrónico']||'').indexOf(q)>=0||(r['Nombre']||'').toLowerCase().indexOf(q)>=0||(r['País']||'').toLowerCase().indexOf(q)>=0;
+    var mp=!pais||r['País']===pais;
+    var me=!est||String(r['Estado']||'').toLowerCase().indexOf(est)>=0;
+    var ma=!app||r[app]==='X';
+    return mq&&mp&&me&&ma;
+  });
+  if(sortC){
+    filtered.sort(function(a,b){return String(a[sortC]||'').localeCompare(String(b[sortC]||''))*sortD});
+  }
+  curPage=1; renderTable();
+}
+
+function getCols(){
+  var meta=curTab==='internos'
+    ?['Correo Electrónico','Nombre','País','Estado','Contador Licencias','Bamboo']
+    :['Correo Electrónico','Nombre','País','Estado','Tipo de Usuario','Contador Licencias'];
+  var app=document.getElementById('filterApp').value;
+  if(app){
+    // Si hay filtro de app, mostrar solo columnas meta + la app filtrada
+    return meta.indexOf(app)>=0 ? meta : meta.concat([app]);
+  }
+  var data=curTab==='internos'?dfInt:dfExt;
+  var all=new Set(data.flatMap(function(r){return Object.keys(r)}));
+  var extras=[...all].filter(function(c){return meta.indexOf(c)<0}).sort();
+  return meta.concat(extras);
+}
+
+function renderTable(){
+  var cols=getCols();
+  var isExt=curTab==='externos';
+  var thead=document.getElementById('thead');
+  var tbody=document.getElementById('tbody');
+  thead.innerHTML='<tr>'+cols.map(function(c){
+    var arr=sortC===c?(sortD===1?' ↑':' ↓'):'';
+    return '<th onclick="sortBy(\''+c+'\')">'+c+arr+'</th>';
+  }).join('')+'</tr>';
+  var start=(curPage-1)*PAGE;
+  var page=filtered.slice(start,start+PAGE);
+  if(!page.length){
+    tbody.innerHTML='<tr><td colspan="'+cols.length+'" class="emsg">Sin resultados</td></tr>';
+  } else {
+    tbody.innerHTML=page.map(function(row,i){
+      return '<tr onclick="showDetail('+(start+i)+')" style="cursor:pointer">'+cols.map(function(c){
+        var v=row[c]!=null?row[c]:'';
+        if(v==='X')return'<td><span class="'+(isExt?'xe':'xi')+'">✓</span></td>';
+        if(c==='Estado'){var lo=String(v).toLowerCase();return'<td><span class="'+(INACTIVOS[lo]?'einact':lo==='active'||lo==='activo'?'eact':'')+'">'+v+'</span></td>'}
+        if(c==='Contador Licencias'){var n=parseInt(v)||0;return'<td><span class="cntbadge '+(n>=10?'ch':n>=5?'cm':'cl')+'">'+n+'</span></td>'}
+        return'<td>'+v+'</td>';
+      }).join('')+'</tr>';
+    }).join('');
+  }
+  var tot=filtered.length, totP=Math.ceil(tot/PAGE);
+  document.getElementById('pginfo').textContent='Página '+curPage+' de '+totP+' — '+tot+' registros';
+  document.getElementById('btnPrev').disabled=curPage<=1;
+  document.getElementById('btnNext').disabled=curPage>=totP;
+}
+
+function sortBy(c){if(sortC===c)sortD*=-1;else{sortC=c;sortD=1}renderTable()}
+document.getElementById('btnPrev').onclick=function(){if(curPage>1){curPage--;renderTable()}};
+document.getElementById('btnNext').onclick=function(){var t=Math.ceil(filtered.length/PAGE);if(curPage<t){curPage++;renderTable()}};
+
+// ── DETAIL ──
+function showDetail(i){
+  var row=filtered[i]; if(!row)return;
+  var isExt=curTab==='externos';
+  document.getElementById('mname').textContent=row['Nombre']||'—';
+  document.getElementById('memail').textContent=row['Correo Electrónico']||'—';
+  document.getElementById('mpais').textContent=row['País']||'—';
+  document.getElementById('mest').textContent=row['Estado']||'—';
+  document.getElementById('mtipo').textContent=isExt?(row['Tipo de Usuario']||'Externo'):'Interno';
+  document.getElementById('mcnt').textContent=row['Contador Licencias']!=null?row['Contador Licencias']:'—';
+  var chips=Object.entries(row).filter(function(e){return e[1]==='X'&&e[0]!=='Bamboo'}).map(function(e){return e[0]});
+  if(row['Bamboo']==='X')chips.unshift('BambooRH');
+  document.getElementById('mchips').innerHTML=chips.length
+    ?chips.map(function(a){return'<span class="chip'+(isExt?' ext':'')+'">'+a+'</span>'}).join('')
+    :'<span style="color:#64748b;font-size:13px">Sin plataformas asignadas</span>';
+  document.getElementById('movl').classList.add('open');
+}
+document.getElementById('movl').onclick=function(e){if(e.target===this)this.classList.remove('open')};
+document.getElementById('mclose').onclick=function(){document.getElementById('movl').classList.remove('open')};
+
+// ── EXPORT ──
+document.getElementById('btnExp').onclick=function(){
+  var cols=getCols();
+  var rows=[cols.join(',')];
+  filtered.forEach(function(r){
+    rows.push(cols.map(function(c){return'"'+String(r[c]!=null?r[c]:'').replace(/"/g,'""')+'"'}).join(','));
+  });
+  var b=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download='matriz_'+curTab+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+};
+</script>
+
+<script>
+// ── MATRIX RAIN ANIMATION ──
+(function(){
+  var canvas=document.getElementById('matrixCanvas');
+  var ctx=canvas.getContext('2d');
+  var chars='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<>{}[]|/\\+=';
+  var cols, drops, fontSize=13;
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+    cols=Math.floor(canvas.width/fontSize);
+    drops=Array(cols).fill(1).map(function(){return Math.random()*-100|0});
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  function draw(){
+    ctx.fillStyle='rgba(0,5,15,0.055)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(var i=0;i<cols;i++){
+      var c=chars[Math.floor(Math.random()*chars.length)];
+      // lead char bright cyan
+      ctx.fillStyle='rgba(0,255,255,0.9)';
+      ctx.font='bold '+fontSize+'px monospace';
+      ctx.fillText(c,i*fontSize,drops[i]*fontSize);
+      // trail chars dim green-cyan
+      ctx.fillStyle='rgba(0,180,120,0.35)';
+      ctx.font=fontSize+'px monospace';
+      var trail=chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillText(trail,i*fontSize,(drops[i]-1)*fontSize);
+      if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0;
+      drops[i]++;
+    }
+  }
+  setInterval(draw,45);
+})();
+</script>
+</body>
+</html>
