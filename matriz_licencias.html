@@ -173,6 +173,7 @@ tbody td{padding:9px 13px;white-space:nowrap}
 .xe{display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid rgba(245,158,11,.3)}
 .einact{color:#ef4444;font-size:11px}
 .eact{color:#10b981;font-size:11px}
+.esusp{color:#f59e0b;font-size:11px}
 .cntbadge{font-weight:700;padding:2px 8px;border-radius:10px;font-size:12px}
 .ch{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
 .cm{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
@@ -423,6 +424,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
       <option value="">Todos los estados</option>
       <option value="active">Activos</option>
       <option value="inactive">Inactivos</option>
+      <option value="suspended">Suspendidos (Workspace)</option>
     </select>
     <select class="fsel" id="filterApp" style="max-width:200px">
       <option value="">Todas las apps</option>
@@ -1098,7 +1100,9 @@ function renderTable(){
       return '<tr onclick="showDetail('+(start+i)+')" style="cursor:pointer">'+cols.map(function(c){
         var v=row[c]!=null?row[c]:'';
         if(v==='X')return'<td><span class="'+(isExt?'xe':'xi')+'">✓</span></td>';
-        if(c==='Estado'){var lo=String(v).toLowerCase();return'<td><span class="'+(INACTIVOS[lo]?'einact':lo==='active'||lo==='activo'?'eact':'')+'">'+v+'</span></td>'}
+        if(c==='Estado'){var lo=String(v).toLowerCase();
+          var cls=INACTIVOS[lo]?'einact':(lo==='suspended'||lo==='suspendido'?'esusp':(lo==='active'||lo==='activo'?'eact':''));
+          return'<td><span class="'+cls+'">'+v+'</span></td>'}
         if(c==='Contador Licencias'){var n=parseInt(v)||0;return'<td><span class="cntbadge '+(n>=10?'ch':n>=5?'cm':'cl')+'">'+n+'</span></td>'}
         return'<td>'+v+'</td>';
       }).join('')+'</tr>';
