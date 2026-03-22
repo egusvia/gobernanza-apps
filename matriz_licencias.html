@@ -2044,9 +2044,9 @@ function getCostForApp(app){
     activosUsers: sinDatos ? '—' : activosUsers,
     inactivosUsers: sinDatos ? '—' : inactivosUsers,
     pricePerUser: pricePerUser,
-    costActivos:   sinDatos ? null : activosUsers  * pricePerUser,
-    costInactivos: sinDatos ? null : inactivosUsers * pricePerUser,
-    costTotal:     sinDatos ? null : totalUsers    * pricePerUser,
+    costActivos:   sinDatos ? null : (Number(activosUsers)   * pricePerUser) || 0,
+    costInactivos: sinDatos ? null : (Number(inactivosUsers) * pricePerUser) || 0,
+    costTotal:     sinDatos ? null : (Number(totalUsers) * pricePerUser) || 0,
     currency: cfg.currency||'USD',
     sinDatos: sinDatos
   };
@@ -2067,7 +2067,7 @@ function renderCostTable(){
   body.innerHTML = rows.map(function(r){
     var pct = (r.costTotal&&r.costTotal>0) ? (r.costInactivos/r.costTotal*100).toFixed(1) : 0;
     var noData = r.sinDatos;
-    var costAnual = r.costTotal ? r.costTotal*12 : null;
+    var costAnual = (r.costTotal && !isNaN(r.costTotal) && r.costTotal > 0) ? r.costTotal*12 : null;
     return '<tr>'
       +'<td class="cost-app-name">'+r.app+(!noData&&pct>0?'<span class="waste-pct">'+pct+'% desperdicio</span>':'')+'</td>'
       +'<td style="color:#64748b">'+(noData?'<span style="color:#475569;font-style:italic">genera matriz</span>':r.totalUsers+' usu.')+'</td>'
