@@ -971,36 +971,83 @@ initAppsList();
 (function(){
 
   // ── CARGA MASIVA ──
+  // Patrones que identifican los archivos principales (BambooRH y Licencias Google).
+  // Estos tienen su propio dropzone y su propia lógica de parseo — NO se tratan
+  // como aplicativos de plataforma ni se muestran como "no reconocidos".
+  var ARCHIVOS_PRINCIPALES = [
+    // BambooRH — cualquier variante del nombre
+    /bamboo/i,
+    /bamboorh/i,
+    // Control de licencias Google Workspace — descarga manual o User_Download
+    /control.?licen/i,
+    /user.?download/i,
+    /workspace.*export/i,
+    /licen.*google/i,
+    /google.*licen/i
+  ];
+
+  function esArchivoPrincipal(fname){
+    return ARCHIVOS_PRINCIPALES.some(function(re){ return re.test(fname); });
+  }
+
   document.getElementById('fileMasivo').onchange=function(){
     var files=Array.from(this.files);
-    var matched=0, unmatched=[];
+    var matched=0, autoMain=[], unmatched=[];
+
     files.forEach(function(file){
-      var fname=file.name.toLowerCase();
-      // Buscar match por nombre de archivo en APPS config
+      var fname=file.name;
+      var fnamel=fname.toLowerCase();
+
+      // ── Archivos principales: auto-asignar a su dropzone y NO contar como no-reconocidos
+      if(esArchivoPrincipal(fnamel)){
+        // Detectar si es BambooRH o Licencias por el nombre
+        if(/bamboo/i.test(fnamel)){
+          setFile('bamboo', file);
+          autoMain.push('📋 '+fname+' → BambooRH');
+        } else {
+          setFile('licencias', file);
+          autoMain.push('🔑 '+fname+' → Licencias Google Workspace');
+        }
+        matched++;
+        return;
+      }
+
+      // ── Aplicativos de plataforma: buscar match exacto por nombre de archivo configurado
       var found=Object.keys(APPS).find(function(app){
-        return fname===APPS[app].toLowerCase();
+        return fnamel===APPS[app].toLowerCase();
       });
-      // Si no matchea exacto, intentar match parcial por nombre de app
+
+      // Si no hay match exacto, intentar match parcial por nombre de app
       if(!found){
         found=Object.keys(APPS).find(function(app){
           var appNorm=app.toLowerCase().replace(/[^a-z0-9]/g,'');
-          var fileNorm=fname.replace(/[^a-z0-9]/g,'');
+          var fileNorm=fnamel.replace(/[^a-z0-9]/g,'');
           return fileNorm.indexOf(appNorm)>=0||appNorm.indexOf(fileNorm.replace('.xlsx','').replace('.xls',''))>=0;
         });
       }
+
       if(found){
         markApp(found,file);
         matched++;
       } else {
-        unmatched.push({name:file.name, file:file});
+        unmatched.push({name:fname, file:file});
       }
     });
-    var msg=matched+' de '+files.length+' archivos reconocidos';
+
+    // Contador principal
+    var totalReconocidos = matched;
+    var totalArchivos    = files.length;
+    var msg = totalReconocidos+' de '+totalArchivos+' archivos reconocidos';
     if(unmatched.length) msg+=' (sin reconocer: '+unmatched.map(function(u){return u.name}).join(', ')+')';
     document.getElementById('bulkCount').textContent=msg;
     document.getElementById('bulkCount').style.color=unmatched.length?'#f59e0b':'#10b981';
 
-    // Mostrar banner de no reconocidos
+    // Log de archivos principales auto-asignados
+    if(autoMain.length){
+      autoMain.forEach(function(m){ log('✅ Carga masiva: '+m,'lok'); });
+    }
+
+    // Banner de no reconocidos (solo archivos de plataforma genuinamente desconocidos)
     var banner=document.getElementById('unmatchedBanner');
     var list=document.getElementById('unmatchedList');
     if(unmatched.length){
@@ -1011,10 +1058,8 @@ initAppsList();
         row.innerHTML='<span class="unm-fname">📄 '+u.name+'</span>'
           +'<button class="unm-btn" title="Crear aplicativo para este archivo">＋ Crear aplicativo</button>';
         row.querySelector('button').onclick=function(){
-          // Pre-fill modal with the file info
-          var suggestedName=u.name.replace(/[_-]/g,' ').replace(/\.xlsx?$/i,'').replace(/users?$/i,'').trim();
-          // Capitalize words
-          suggestedName=suggestedName.replace(/\b\w/g,function(c){return c.toUpperCase()});
+          var suggestedName=u.name.replace(/[_\-]/g,' ').replace(/\.xlsx?$/i,'').replace(/\busers?\b/i,'').trim();
+          suggestedName=suggestedName.replace(/\b\w/g,function(c){return c.toUpperCase()}).trim();
           openNewApp(suggestedName, u.name, u.file);
         };
         list.appendChild(row);
