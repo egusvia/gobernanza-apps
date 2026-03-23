@@ -279,56 +279,30 @@ tbody td{padding:9px 13px;white-space:nowrap}
 .kpi-sub{font-size:11px;color:#64748b;margin-top:4px}
 .waste-pct{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);margin-left:6px}
 
-/* ── COST TABS ── */
-.cost-tabs{display:flex;gap:4px;background:#0f1928;border:1px solid #1f2d42;border-radius:10px;padding:5px;margin-bottom:22px;width:fit-content}
-.cost-tab{font-size:12px;padding:8px 20px;border-radius:6px;cursor:pointer;border:none;background:transparent;color:#64748b;transition:all .2s;letter-spacing:1px;white-space:nowrap}
-.cost-tab.active{background:#1a2235;color:#e2e8f0;border:1px solid #1f2d42}
-.cost-tab-pane{display:none}
-.cost-tab-pane.active{display:block}
+/* ── NEW APP MODAL ── */
+#newAppModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:700;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#newAppModal.open{display:flex}
+.nabox{background:#111827;border:1px solid rgba(0,212,255,.3);border-radius:16px;padding:30px;max-width:500px;width:90%;position:relative;box-shadow:0 0 60px rgba(0,212,255,.1)}
+.nabox h3{font-size:15px;font-weight:700;color:#00d4ff;margin-bottom:4px}
+.nabox .nasub{font-size:12px;color:#64748b;margin-bottom:20px}
+.nafield{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.nafield label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.nafield input,.nafield select{background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;font-size:14px;padding:10px 14px;border-radius:8px;outline:none;transition:border-color .2s}
+.nafield input:focus,.nafield select:focus{border-color:#00d4ff}
+.nabtn-row{display:flex;gap:10px;margin-top:20px}
+.nabtn-ok{flex:1;background:linear-gradient(135deg,#0099cc,#00d4ff);color:#000;border:none;font-weight:700;font-size:13px;padding:12px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.nabtn-ok:hover{box-shadow:0 0 30px rgba(0,212,255,.3)}
+.nabtn-cancel{background:transparent;border:1px solid #1f2d42;color:#64748b;font-size:13px;padding:12px 20px;border-radius:8px;cursor:pointer;transition:all .2s}
+.nabtn-cancel:hover{border-color:#ef4444;color:#ef4444}
 
-/* ── EXPORT BUTTONS ── */
-.export-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
-.btn-export-pdf{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);color:#ef4444;font-size:12px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:1px}
-.btn-export-pdf:hover{background:rgba(239,68,68,.2)}
-.btn-export-xlsx{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.4);color:#10b981;font-size:12px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:1px}
-.btn-export-xlsx:hover{background:rgba(16,185,129,.2)}
-.btn-export-csv2{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.4);color:#00d4ff;font-size:12px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:1px}
-.btn-export-csv2:hover{background:rgba(0,212,255,.2)}
-
-/* ── CHARTS ── */
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
-.charts-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:24px}
-.chart-card{background:#111827;border:1px solid #1f2d42;border-radius:12px;padding:20px}
-.chart-card h4{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:16px}
-.chart-card.full{grid-column:1/-1}
-.chart-canvas-wrap{position:relative;width:100%;height:260px}
-
-/* ── LICENSE SUMMARY ── */
-.lic-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:24px}
-.lic-card{background:#111827;border:1px solid #1f2d42;border-radius:10px;padding:16px;transition:border-color .2s}
-.lic-card:hover{border-color:rgba(0,212,255,.25)}
-.lic-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.lic-app-icon{width:32px;height:32px;border-radius:7px;background:#1a2235;border:1px solid #1f2d42;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.lic-app-name{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lic-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.lic-bar-label{font-size:10px;color:#64748b;width:56px;flex-shrink:0;text-transform:uppercase;letter-spacing:.5px}
-.lic-bar-track{flex:1;background:#1a2235;height:5px;border-radius:3px;overflow:hidden}
-.lic-bar-fill-act{height:100%;border-radius:3px;background:linear-gradient(90deg,#059669,#10b981)}
-.lic-bar-fill-inact{height:100%;border-radius:3px;background:linear-gradient(90deg,#dc2626,#ef4444)}
-.lic-bar-val{font-size:11px;font-family:monospace;width:28px;text-align:right;flex-shrink:0}
-.lic-cost-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid rgba(31,45,66,.7)}
-.lic-cost-monthly{font-size:14px;font-weight:700;font-family:monospace;color:#f59e0b}
-.lic-cost-annual{font-size:11px;color:#64748b}
-.lic-waste-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
-.lic-no-cost{font-size:11px;color:#475569;font-style:italic}
-
-/* ── EFFICIENCY METER ── */
-.eff-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
-.eff-ring{position:relative;width:100px;height:100px}
-.eff-ring svg{transform:rotate(-90deg)}
-.eff-ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;font-weight:700;line-height:1}
-.eff-ring-sub{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
-
+/* ── UNMATCHED FILES BANNER ── */
+#unmatchedBanner{display:none;background:#111827;border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:16px 18px;margin-top:14px}
+.unm-title{font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.unm-file{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(31,45,66,.6);gap:10px}
+.unm-file:last-child{border-bottom:none}
+.unm-fname{font-size:12px;color:#e2e8f0;font-family:monospace;flex:1}
+.unm-btn{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.unm-btn:hover{background:rgba(0,212,255,.2)}
 </style>
 </head>
 <body>
@@ -410,6 +384,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
       <h3 style="margin-bottom:0">🧩 Archivos de Plataformas</h3>
       <div style="display:flex;align-items:center;gap:10px">
         <span id="bulkCount" style="font-size:12px;color:#64748b"></span>
+        <button onclick="openNewApp()" style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.35);color:#00d4ff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s" onmouseover="this.style.background='rgba(0,212,255,.16)'" onmouseout="this.style.background='rgba(0,212,255,.08)'">＋ Nuevo Aplicativo</button>
         <button onclick="openCfg()" style="background:#1a2235;border:1px solid #1f2d42;color:#64748b;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s" onmouseover="this.style.borderColor='#00d4ff';this.style.color='#00d4ff'" onmouseout="this.style.borderColor='#1f2d42';this.style.color='#64748b'">⚙️ Nombres de archivos</button>
         <label style="display:flex;align-items:center;gap:8px;background:#1a2235;border:1px solid #f59e0b;color:#f59e0b;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s" onmouseover="this.style.background='rgba(245,158,11,.1)'" onmouseout="this.style.background='#1a2235'">
           📂 CARGA MASIVA
@@ -418,6 +393,10 @@ var CONTRASENA_VALIDA = "Xertica2026";
       </div>
     </div>
     <div class="alist" id="alist"></div>
+    <div id="unmatchedBanner">
+      <div class="unm-title">⚠️ Archivos no reconocidos — puedes crearlos como nuevos aplicativos</div>
+      <div id="unmatchedList"></div>
+    </div>
   </div>
 
   <div class="runsec">
@@ -569,149 +548,77 @@ var CONTRASENA_VALIDA = "Xertica2026";
     <div class="hist-title">💰 Gestión de Costos de Licencias</div>
     <button class="btnhist" onclick="closeCost()">✕ Cerrar</button>
   </div>
-  <div style="max-width:1440px;margin:0 auto;padding:28px">
+  <div style="max-width:1400px;margin:0 auto;padding:28px">
 
     <!-- KPIs -->
-    <div class="kpi-grid" id="costKpis" style="margin-bottom:22px">
+    <div class="kpi-grid" id="costKpis">
       <div class="kpi-card"><div class="kpi-label">Costo mensual total</div><div class="kpi-val sv-a" id="kpiTotal">$0</div><div class="kpi-sub">suma de todas las apps configuradas</div></div>
       <div class="kpi-card"><div class="kpi-label">Costo usuarios activos</div><div class="kpi-val sv-g" id="kpiActivos">$0</div><div class="kpi-sub">licencias en uso efectivo</div></div>
       <div class="kpi-card"><div class="kpi-label">Costo desperdiciado</div><div class="kpi-val" style="color:#ef4444" id="kpiWasted">$0</div><div class="kpi-sub" id="kpiWastedSub">usuarios inactivos/suspendidos con licencia</div></div>
       <div class="kpi-card"><div class="kpi-label">% Desperdicio</div><div class="kpi-val" style="color:#f59e0b" id="kpiPct">0%</div><div class="kpi-sub">del presupuesto total</div></div>
-      <div class="kpi-card"><div class="kpi-label">Proyección anual</div><div class="kpi-val" style="color:#00d4ff" id="kpiAnual">$0</div><div class="kpi-sub">costo total año</div></div>
-      <div class="kpi-card"><div class="kpi-label">Ahorro potencial</div><div class="kpi-val" style="color:#a78bfa" id="kpiSaving">$0</div><div class="kpi-sub">eliminando inactivos/año</div></div>
     </div>
 
-    <!-- TABS de navegación del módulo -->
-    <div class="cost-tabs">
-      <button class="cost-tab active" onclick="switchCostTab('resumen')">📊 Resumen Visual</button>
-      <button class="cost-tab" onclick="switchCostTab('graficos')">📈 Gráficos</button>
-      <button class="cost-tab" onclick="switchCostTab('licencias')">🏷️ Consumo de Licencias</button>
-      <button class="cost-tab" onclick="switchCostTab('configurar')">⚙️ Configurar Costos</button>
-      <button class="cost-tab" onclick="switchCostTab('factura')">📄 Factura PDF</button>
-    </div>
-
-    <!-- ─── TAB: RESUMEN ─── -->
-    <div class="cost-tab-pane active" id="cpane-resumen">
-      <!-- Barra exportar -->
-      <div class="export-bar">
-        <span style="font-size:12px;color:#64748b;margin-right:4px">Exportar:</span>
-        <button class="btn-export-pdf" onclick="exportCostPDF()">📄 PDF</button>
-        <button class="btn-export-xlsx" onclick="exportCostXLSX()">📊 Excel</button>
-        <button class="btn-export-csv2" onclick="exportCostCSV()">📋 CSV</button>
+    <!-- Subir factura PDF -->
+    <div class="cost-card" style="margin-bottom:24px;border-color:rgba(245,158,11,.3)">
+      <h4 style="color:#f59e0b">📄 Importar desde Factura PDF</h4>
+      <p style="font-size:12px;color:#64748b;margin-bottom:14px">Sube la factura de cualquier app (Zoom, Docusign, Salesforce, etc.) y la IA extrae automáticamente los costos y los aplica al módulo.</p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;background:#1a2235;border:1px dashed rgba(245,158,11,.4);color:#f59e0b;font-size:12px;font-weight:600;padding:10px 18px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(245,158,11,.08)'" onmouseout="this.style.background='#1a2235'">
+          📎 Seleccionar factura PDF
+          <input type="file" accept=".pdf" id="fileInvoice" style="display:none" onchange="processInvoicePDF(this)">
+        </label>
+        <div id="invoiceStatus" style="font-size:12px;color:#64748b"></div>
       </div>
-      <!-- Tabla resumen -->
-      <div class="cost-summary" id="costSummaryWrap" style="display:none">
-        <table class="cost-table" id="costMainTable">
-          <thead>
-            <tr>
-              <th>Aplicación</th>
-              <th>Usuarios</th>
-              <th>Precio/lic/mes</th>
-              <th>Costo activos</th>
-              <th style="color:#ef4444">Costo inactivos</th>
-              <th>Total mes</th>
-              <th style="color:#10b981">Total año</th>
-            </tr>
-          </thead>
-          <tbody id="costTableBody"></tbody>
-          <tfoot id="costTotalRow" style="display:none">
-            <tr>
-              <td>TOTAL</td>
-              <td></td>
-              <td></td>
-              <td style="color:#10b981" id="totalActivos">$0</td>
-              <td style="color:#ef4444" id="totalInactivos">$0</td>
-              <td style="color:#f59e0b" id="totalMes">$0</td>
-              <td style="color:#10b981" id="totalAnual">$0</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <div id="costResumenEmpty" style="text-align:center;padding:60px;color:#64748b;display:none">
-        <div style="font-size:36px;margin-bottom:12px">💰</div>
-        <div style="font-size:14px">Configura costos en la pestaña ⚙️ para ver el resumen</div>
+      <!-- Resultado del análisis -->
+      <div id="invoiceResult" style="display:none;margin-top:16px;background:#0f1928;border:1px solid #1f2d42;border-radius:8px;padding:16px">
+        <div style="font-size:11px;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" id="invoiceTitle">Análisis de factura</div>
+        <div id="invoiceBreakdown"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap" id="invoiceActions"></div>
       </div>
     </div>
 
-    <!-- ─── TAB: GRÁFICOS ─── -->
-    <div class="cost-tab-pane" id="cpane-graficos">
-      <div class="charts-grid">
-        <div class="chart-card">
-          <h4>💸 Costo mensual por aplicación</h4>
-          <div class="chart-canvas-wrap"><canvas id="chartBarCosts"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h4>🥧 Distribución del gasto</h4>
-          <div class="chart-canvas-wrap"><canvas id="chartDoughnut"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h4>🔴 Activos vs Inactivos — Costo</h4>
-          <div class="chart-canvas-wrap"><canvas id="chartStackedBar"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h4>📉 % Desperdicio por app</h4>
-          <div class="chart-canvas-wrap"><canvas id="chartWastePct"></canvas></div>
-        </div>
+    <!-- Configurar costos por app -->
+    <div class="cost-card" style="margin-bottom:24px">
+      <h4>⚙️ Configurar precio por aplicación</h4>
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px">Ingresa el precio por licencia/mes <strong>o</strong> el costo total mensual. El campo AÑO se calcula automáticamente (×12) y viceversa.</p>
+      <!-- Column headers -->
+      <div style="display:grid;grid-template-columns:240px 120px 180px 90px;gap:10px;padding:4px 8px;margin-bottom:4px;border-bottom:1px solid #1f2d42">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Aplicación</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Tipo</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Valor</div>
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Moneda</div>
       </div>
+      <div id="costAppList" style="display:flex;flex-direction:column;gap:2px"></div>
+      <button onclick="saveAllCosts()" class="cost-save-btn" style="margin-top:16px;padding:10px 24px;font-size:13px">💾 Guardar todos los costos</button>
     </div>
 
-    <!-- ─── TAB: CONSUMO DE LICENCIAS ─── -->
-    <div class="cost-tab-pane" id="cpane-licencias">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px">
-        <div style="font-size:13px;color:#64748b">Resumen detallado de usuarios y costos por plataforma</div>
-        <div style="display:flex;gap:8px">
-          <input class="sinput" style="width:220px;font-size:12px;padding:8px 12px" type="text" id="licSearch" placeholder="🔍 Buscar app..." oninput="filterLicCards()">
-          <select class="fsel" id="licSort" onchange="renderLicCards()" style="font-size:12px;padding:8px 12px">
-            <option value="cost_desc">Mayor costo</option>
-            <option value="cost_asc">Menor costo</option>
-            <option value="waste_desc">Mayor desperdicio</option>
-            <option value="users_desc">Más usuarios</option>
-            <option value="alpha">Alfabético</option>
-          </select>
-        </div>
-      </div>
-      <div class="lic-summary-grid" id="licSummaryGrid"></div>
-      <div id="licEmpty" style="text-align:center;padding:60px;color:#64748b;display:none">
-        <div style="font-size:36px;margin-bottom:12px">🏷️</div>
-        <div>Configura costos para ver el consumo de licencias</div>
-      </div>
-    </div>
-
-    <!-- ─── TAB: CONFIGURAR ─── -->
-    <div class="cost-tab-pane" id="cpane-configurar">
-      <!-- Subir factura rápida desde aquí también -->
-      <div class="cost-card" style="margin-bottom:24px">
-        <h4>⚙️ Configurar precio por aplicación</h4>
-        <p style="font-size:12px;color:#64748b;margin-bottom:12px">Ingresa el precio por licencia/mes <strong>o</strong> el costo total mensual. El campo AÑO se calcula automáticamente (×12) y viceversa.</p>
-        <div style="display:grid;grid-template-columns:240px 120px 180px 90px;gap:10px;padding:4px 8px;margin-bottom:4px;border-bottom:1px solid #1f2d42">
-          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Aplicación</div>
-          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Tipo</div>
-          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Valor</div>
-          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px">Moneda</div>
-        </div>
-        <div id="costAppList" style="display:flex;flex-direction:column;gap:2px"></div>
-        <button onclick="saveAllCosts()" class="cost-save-btn" style="margin-top:16px;padding:10px 24px;font-size:13px">💾 Guardar todos los costos</button>
-      </div>
-    </div>
-
-    <!-- ─── TAB: FACTURA PDF ─── -->
-    <div class="cost-tab-pane" id="cpane-factura">
-      <div class="cost-card" style="border-color:rgba(245,158,11,.3)">
-        <h4 style="color:#f59e0b">📄 Importar desde Factura PDF</h4>
-        <p style="font-size:12px;color:#64748b;margin-bottom:14px">Sube la factura de cualquier app (Zoom, Docusign, Salesforce, etc.) y la IA extrae automáticamente los costos y los aplica al módulo.</p>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <label style="display:flex;align-items:center;gap:8px;background:#1a2235;border:1px dashed rgba(245,158,11,.4);color:#f59e0b;font-size:12px;font-weight:600;padding:10px 18px;border-radius:8px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(245,158,11,.08)'" onmouseout="this.style.background='#1a2235'">
-            📎 Seleccionar factura PDF
-            <input type="file" accept=".pdf" id="fileInvoice" style="display:none" onchange="processInvoicePDF(this)">
-          </label>
-          <div id="invoiceStatus" style="font-size:12px;color:#64748b"></div>
-        </div>
-        <div id="invoiceResult" style="display:none;margin-top:16px;background:#0f1928;border:1px solid #1f2d42;border-radius:8px;padding:16px">
-          <div style="font-size:11px;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" id="invoiceTitle">Análisis de factura</div>
-          <div id="invoiceBreakdown"></div>
-          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap" id="invoiceActions"></div>
-        </div>
-      </div>
+    <!-- Tabla resumen de costos -->
+    <div class="cost-summary" id="costSummaryWrap" style="display:none">
+      <table class="cost-table">
+        <thead>
+          <tr>
+            <th>Aplicación</th>
+            <th>Usuarios</th>
+            <th>Precio/lic/mes</th>
+            <th>Costo activos</th>
+            <th style="color:#ef4444">Costo inactivos</th>
+            <th>Total mes</th>
+            <th style="color:#10b981">Total año</th>
+          </tr>
+        </thead>
+        <tbody id="costTableBody"></tbody>
+        <tfoot id="costTotalRow" style="display:none">
+          <tr>
+            <td>TOTAL</td>
+            <td></td>
+            <td></td>
+            <td style="color:#10b981" id="totalActivos">$0</td>
+            <td style="color:#ef4444" id="totalInactivos">$0</td>
+            <td style="color:#f59e0b" id="totalMes">$0</td>
+            <td style="color:#10b981" id="totalAnual">$0</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
 
   </div>
@@ -740,6 +647,31 @@ var CONTRASENA_VALIDA = "Xertica2026";
   </div>
 </div>
 
+<!-- NEW APP MODAL -->
+<div id="newAppModal">
+  <div class="nabox">
+    <div style="font-size:22px;margin-bottom:8px">➕ Nuevo Aplicativo</div>
+    <div class="nasub" id="naSubtitle">Define el nombre y el archivo esperado para el nuevo aplicativo.</div>
+    <div class="nafield">
+      <label>Nombre del Aplicativo</label>
+      <input type="text" id="naName" placeholder="Ej: Netsuite, HubSpot, Monday...">
+    </div>
+    <div class="nafield">
+      <label>Icono (emoji)</label>
+      <input type="text" id="naIcon" placeholder="🧩" maxlength="4" style="width:80px">
+    </div>
+    <div class="nafield">
+      <label>Nombre de archivo esperado</label>
+      <input type="text" id="naFile" placeholder="Ej: Netsuite_users.xlsx">
+    </div>
+    <div id="naErr" style="font-size:12px;color:#ef4444;min-height:18px;display:none"></div>
+    <div class="nabtn-row">
+      <button class="nabtn-ok" onclick="confirmNewApp()">✅ Crear Aplicativo</button>
+      <button class="nabtn-cancel" onclick="closeNewApp()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </div><!-- #appShell -->
 
 <!-- MODAL -->
@@ -761,11 +693,6 @@ var CONTRASENA_VALIDA = "Xertica2026";
 
 <!-- SheetJS al final para no bloquear render -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Chart.js para gráficos de costos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<!-- jsPDF para exportar PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
 // ── CONFIG ──
@@ -785,7 +712,7 @@ var APPS_DEFAULT = {
   "Tactig":"Tactig_users.xlsx","Zoom":"zoom_users.xlsx",
   "Office 365":"Office365_users.xlsx","WithSecure":"WithSecure_users.xlsx",
   "Lucidchart":"Lucidchart_users.xlsx","Webflow":"Webflow_users.xlsx",
-  "Octadesk":"Octadesk_users.xlsx"
+  "Octadesk":"Octadesk_users.xlsx","Netsuite":"Netsuite_users.xlsx"
 };
 
 // Load custom names from localStorage, fallback to defaults
@@ -879,7 +806,7 @@ var ICONS = {
   "GitHub":"🐙","Jira":"🔵","Miro":"🗂️","Aircall":"📞","Apollo":"🚀",
   "Freshservice SPLA":"🔧","3CX":"📱","Lusha":"🔍","Smartsheet":"📋",
   "Tactig":"🎯","Zoom":"🎥","Office 365":"🏢","WithSecure":"🔒",
-  "Lucidchart":"📐","Webflow":"🌐","Octadesk":"💬"
+  "Lucidchart":"📐","Webflow":"🌐","Octadesk":"💬","Netsuite":"🧾"
 };
 
 // ── STATE ──
@@ -932,7 +859,78 @@ document.getElementById('fileLic').onchange=function(){if(this.files[0])setFile(
   el.ondrop=function(e){e.preventDefault();el.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)setFile(key,f)};
 });
 
-// ── BUILD APPS LIST ──
+// ── NEW APP MODAL ──
+var _naFile = null; // file object pre-loaded from bulk upload
+
+function openNewApp(suggestedName, suggestedFile, fileObj){
+  document.getElementById('naName').value = suggestedName || '';
+  document.getElementById('naFile').value = suggestedFile || '';
+  document.getElementById('naIcon').value = '📦';
+  document.getElementById('naErr').style.display='none';
+  _naFile = fileObj || null;
+  var sub = suggestedName
+    ? '⚠️ "'+suggestedFile+'" no fue reconocido. Completa los datos para crearlo.'
+    : 'Define el nombre y el archivo esperado para el nuevo aplicativo.';
+  document.getElementById('naSubtitle').textContent = sub;
+  document.getElementById('newAppModal').classList.add('open');
+  setTimeout(function(){ document.getElementById('naName').focus(); }, 80);
+}
+
+function closeNewApp(){
+  document.getElementById('newAppModal').classList.remove('open');
+  _naFile = null;
+}
+
+function confirmNewApp(){
+  var name = document.getElementById('naName').value.trim();
+  var icon = document.getElementById('naIcon').value.trim() || '📦';
+  var file = document.getElementById('naFile').value.trim();
+  var err  = document.getElementById('naErr');
+  if(!name){ err.textContent='El nombre es obligatorio.'; err.style.display='block'; return; }
+  if(!file){ err.textContent='El nombre de archivo es obligatorio.'; err.style.display='block'; return; }
+  if(!/\.xlsx?$/i.test(file)){ err.textContent='El archivo debe terminar en .xlsx o .xls'; err.style.display='block'; return; }
+  if(APPS[name]){ err.textContent='Ya existe un aplicativo con ese nombre.'; err.style.display='block'; return; }
+
+  // Register in APPS, ICONS, APPS_DEFAULT
+  APPS[name] = file;
+  ICONS[name] = icon;
+  APPS_DEFAULT[name] = file;
+
+  // Persist custom apps to localStorage
+  try {
+    var custom = JSON.parse(localStorage.getItem('gobernanza_custom_apps')||'{}');
+    custom[name] = {file: file, icon: icon};
+    localStorage.setItem('gobernanza_custom_apps', JSON.stringify(custom));
+    // Also persist to app_names
+    var names = JSON.parse(localStorage.getItem('gobernanza_app_names')||'{}');
+    names[name] = file;
+    localStorage.setItem('gobernanza_app_names', JSON.stringify(names));
+  } catch(e){}
+
+  // Rebuild list
+  initAppsList();
+
+  // If we have a pre-loaded file, auto-assign it
+  if(_naFile){
+    markApp(name, _naFile);
+    // Remove from unmatched banner
+    var banner = document.getElementById('unmatchedBanner');
+    var rows = banner.querySelectorAll('.unm-file');
+    rows.forEach(function(row){
+      if(row.querySelector('.unm-fname').textContent.indexOf(_naFile.name) >= 0){
+        row.remove();
+      }
+    });
+    if(banner.querySelectorAll('.unm-file').length === 0) banner.style.display='none';
+  }
+
+  closeNewApp();
+  log('✅ Aplicativo "'+name+'" creado y registrado.', 'lok');
+}
+
+document.getElementById('newAppModal').onclick=function(e){ if(e.target===this) closeNewApp(); };
+
+// ── MARK APP AS LOADED ──
 function markApp(app, file){
   appFiles[app]=file;
   var st=document.getElementById('as_'+app);
@@ -941,8 +939,19 @@ function markApp(app, file){
   if(it)it.classList.add('loaded');
 }
 
-(function(){
+// ── BUILD APPS LIST (reusable) ──
+function initAppsList(){
   var list=document.getElementById('alist');
+  list.innerHTML='';
+
+  // Load custom apps from localStorage
+  try {
+    var custom=JSON.parse(localStorage.getItem('gobernanza_custom_apps')||'{}');
+    Object.keys(custom).forEach(function(name){
+      if(!APPS[name]){ APPS[name]=custom[name].file; ICONS[name]=custom[name].icon||'📦'; APPS_DEFAULT[name]=custom[name].file; }
+    });
+  } catch(e){}
+
   Object.keys(APPS).forEach(function(app){
     var d=document.createElement('div');
     d.className='aitem'; d.id='ai_'+app;
@@ -952,7 +961,14 @@ function markApp(app, file){
       markApp(app,f);
     };
     list.appendChild(d);
+    // Re-apply loaded state if file already assigned
+    if(appFiles[app]) markApp(app, appFiles[app]);
   });
+}
+
+initAppsList();
+
+(function(){
 
   // ── CARGA MASIVA ──
   document.getElementById('fileMasivo').onchange=function(){
@@ -976,13 +992,37 @@ function markApp(app, file){
         markApp(found,file);
         matched++;
       } else {
-        unmatched.push(file.name);
+        unmatched.push({name:file.name, file:file});
       }
     });
     var msg=matched+' de '+files.length+' archivos reconocidos';
-    if(unmatched.length) msg+=' (sin reconocer: '+unmatched.join(', ')+')';
+    if(unmatched.length) msg+=' (sin reconocer: '+unmatched.map(function(u){return u.name}).join(', ')+')';
     document.getElementById('bulkCount').textContent=msg;
     document.getElementById('bulkCount').style.color=unmatched.length?'#f59e0b':'#10b981';
+
+    // Mostrar banner de no reconocidos
+    var banner=document.getElementById('unmatchedBanner');
+    var list=document.getElementById('unmatchedList');
+    if(unmatched.length){
+      list.innerHTML='';
+      unmatched.forEach(function(u){
+        var row=document.createElement('div');
+        row.className='unm-file';
+        row.innerHTML='<span class="unm-fname">📄 '+u.name+'</span>'
+          +'<button class="unm-btn" title="Crear aplicativo para este archivo">＋ Crear aplicativo</button>';
+        row.querySelector('button').onclick=function(){
+          // Pre-fill modal with the file info
+          var suggestedName=u.name.replace(/[_-]/g,' ').replace(/\.xlsx?$/i,'').replace(/users?$/i,'').trim();
+          // Capitalize words
+          suggestedName=suggestedName.replace(/\b\w/g,function(c){return c.toUpperCase()});
+          openNewApp(suggestedName, u.name, u.file);
+        };
+        list.appendChild(row);
+      });
+      banner.style.display='block';
+    } else {
+      banner.style.display='none';
+    }
   };
 })();
 
@@ -2188,16 +2228,9 @@ function renderCostTable(){
   var rows = colsAll2.map(getCostForApp).filter(Boolean);
   var body = document.getElementById('costTableBody');
   var wrap = document.getElementById('costSummaryWrap');
-  var emptyEl = document.getElementById('costResumenEmpty');
 
-  if(!rows.length){
-    if(wrap) wrap.style.display='none';
-    if(emptyEl) emptyEl.style.display='block';
-    updateKpis([]);
-    return;
-  }
-  if(wrap) wrap.style.display='block';
-  if(emptyEl) emptyEl.style.display='none';
+  if(!rows.length){ wrap.style.display='none'; updateKpis([]); return; }
+  wrap.style.display='block';
 
   body.innerHTML = rows.map(function(r){
     var pct = (r.costTotal&&r.costTotal>0) ? (r.costInactivos/r.costTotal*100).toFixed(1) : 0;
@@ -2215,10 +2248,10 @@ function renderCostTable(){
   }).join('');
 
   // Totales (solo USD para simplificar el total global)
-  var usdRows = rows.filter(function(r){return r.currency==='USD'&&!r.sinDatos;});
-  var sumAct  = usdRows.reduce(function(s,r){return s+(r.costActivos||0);},0);
-  var sumInact= usdRows.reduce(function(s,r){return s+(r.costInactivos||0);},0);
-  var sumTot  = usdRows.reduce(function(s,r){return s+(r.costTotal||0);},0);
+  var usdRows = rows.filter(function(r){return r.currency==='USD';});
+  var sumAct  = usdRows.reduce(function(s,r){return s+r.costActivos;},0);
+  var sumInact= usdRows.reduce(function(s,r){return s+r.costInactivos;},0);
+  var sumTot  = usdRows.reduce(function(s,r){return s+r.costTotal;},0);
   document.getElementById('totalActivos').textContent  = fmtCurrency(sumAct,'USD');
   document.getElementById('totalInactivos').textContent= fmtCurrency(sumInact,'USD');
   document.getElementById('totalMes').textContent      = fmtCurrency(sumTot,'USD');
@@ -2229,314 +2262,15 @@ function renderCostTable(){
 }
 
 function updateKpis(rows){
-  var usdRows = rows.filter(function(r){return r.currency==='USD'&&!r.sinDatos;});
-  var tot   = usdRows.reduce(function(s,r){return s+(r.costTotal||0);},0);
-  var act   = usdRows.reduce(function(s,r){return s+(r.costActivos||0);},0);
-  var waste = usdRows.reduce(function(s,r){return s+(r.costInactivos||0);},0);
+  var usdRows = rows.filter(function(r){return r.currency==='USD';});
+  var tot   = usdRows.reduce(function(s,r){return s+r.costTotal;},0);
+  var act   = usdRows.reduce(function(s,r){return s+r.costActivos;},0);
+  var waste = usdRows.reduce(function(s,r){return s+r.costInactivos;},0);
   var pct   = tot > 0 ? (waste/tot*100).toFixed(1) : 0;
   document.getElementById('kpiTotal').textContent   = fmtCurrency(tot,'USD');
   document.getElementById('kpiActivos').textContent = fmtCurrency(act,'USD');
   document.getElementById('kpiWasted').textContent  = fmtCurrency(waste,'USD');
   document.getElementById('kpiPct').textContent     = pct+'%';
-  document.getElementById('kpiAnual').textContent   = fmtCurrency(tot*12,'USD');
-  document.getElementById('kpiSaving').textContent  = fmtCurrency(waste*12,'USD');
-  // Update charts if on charts tab
-  renderCostCharts(rows);
-  renderLicCards();
-}
-
-// ── COST TABS ──
-function switchCostTab(name){
-  document.querySelectorAll('.cost-tab').forEach(function(b,i){
-    var panes=['resumen','graficos','licencias','configurar','factura'];
-    b.classList.toggle('active', panes[i]===name);
-  });
-  document.querySelectorAll('.cost-tab-pane').forEach(function(p){
-    p.classList.remove('active');
-  });
-  var pane=document.getElementById('cpane-'+name);
-  if(pane) pane.classList.add('active');
-  if(name==='graficos'){
-    setTimeout(function(){
-      var colsAll2=colsGoogle.concat(allApps);
-      if(!colsAll2.length){try{colsAll2=JSON.parse(localStorage.getItem('gobernanza_apps')||'[]');}catch(e){colsAll2=[];}}
-      var rows=colsAll2.map(getCostForApp).filter(Boolean);
-      renderCostCharts(rows);
-    },50);
-  }
-  if(name==='licencias') renderLicCards();
-}
-
-// ── CHARTS ──
-var _charts={};
-function destroyChart(id){if(_charts[id]){try{_charts[id].destroy();}catch(e){}delete _charts[id];}}
-
-function renderCostCharts(rows){
-  if(!rows||!rows.length) return;
-  var valid=rows.filter(function(r){return !r.sinDatos&&r.costTotal>0&&r.currency==='USD';});
-  if(!valid.length) return;
-
-  var labels=valid.map(function(r){return r.app;});
-  var actData=valid.map(function(r){return+(r.costActivos||0).toFixed(2);});
-  var inactData=valid.map(function(r){return+(r.costInactivos||0).toFixed(2);});
-  var totData=valid.map(function(r){return+(r.costTotal||0).toFixed(2);});
-  var wastePct=valid.map(function(r){return r.costTotal>0?+((r.costInactivos/r.costTotal)*100).toFixed(1):0;});
-
-  var chartDefaults={
-    color:'#94a3b8',
-    font:{family:'system-ui,sans-serif',size:11}
-  };
-
-  // Bar: costo total por app
-  destroyChart('barCosts');
-  var ctx1=document.getElementById('chartBarCosts');
-  if(ctx1){
-    _charts['barCosts']=new Chart(ctx1,{
-      type:'bar',
-      data:{labels:labels,datasets:[{label:'Total mes USD',data:totData,backgroundColor:'rgba(0,212,255,0.7)',borderColor:'rgba(0,212,255,1)',borderWidth:1,borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.raw.toLocaleString('en-US',{minimumFractionDigits:2});}}}},scales:{x:{ticks:{color:'#64748b',font:{size:9},maxRotation:40},grid:{color:'rgba(31,45,66,.4)'}},y:{ticks:{color:'#64748b',callback:function(v){return'$'+v.toLocaleString();}},grid:{color:'rgba(31,45,66,.4)'}}}}
-    });
-  }
-
-  // Doughnut: distribución gasto
-  destroyChart('doughnut');
-  var ctx2=document.getElementById('chartDoughnut');
-  if(ctx2){
-    var palette=['#00d4ff','#10b981','#f59e0b','#ef4444','#a78bfa','#06b6d4','#84cc16','#f97316','#ec4899','#6366f1','#14b8a6','#eab308','#dc2626','#8b5cf6','#0ea5e9','#22c55e'];
-    _charts['doughnut']=new Chart(ctx2,{
-      type:'doughnut',
-      data:{labels:labels,datasets:[{data:totData,backgroundColor:palette.slice(0,labels.length),borderColor:'#111827',borderWidth:2}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:10},boxWidth:12,padding:8}},tooltip:{callbacks:{label:function(c){return c.label+': $'+c.raw.toLocaleString('en-US',{minimumFractionDigits:2});}}}}}
-    });
-  }
-
-  // Stacked bar: activos vs inactivos
-  destroyChart('stackedBar');
-  var ctx3=document.getElementById('chartStackedBar');
-  if(ctx3){
-    _charts['stackedBar']=new Chart(ctx3,{
-      type:'bar',
-      data:{labels:labels,datasets:[
-        {label:'Activos',data:actData,backgroundColor:'rgba(16,185,129,0.75)',borderRadius:4},
-        {label:'Inactivos',data:inactData,backgroundColor:'rgba(239,68,68,0.75)',borderRadius:4}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': $'+c.raw.toLocaleString('en-US',{minimumFractionDigits:2});}}}},scales:{x:{stacked:true,ticks:{color:'#64748b',font:{size:9},maxRotation:40},grid:{color:'rgba(31,45,66,.4)'}},y:{stacked:true,ticks:{color:'#64748b',callback:function(v){return'$'+v.toLocaleString();}},grid:{color:'rgba(31,45,66,.4)'}}}}
-    });
-  }
-
-  // Horizontal bar: % desperdicio
-  destroyChart('wastePct');
-  var ctx4=document.getElementById('chartWastePct');
-  if(ctx4){
-    var wpSorted=[...valid].map(function(r,i){return{app:r.app,pct:wastePct[i]};}).sort(function(a,b){return b.pct-a.pct;});
-    _charts['wastePct']=new Chart(ctx4,{
-      type:'bar',
-      data:{labels:wpSorted.map(function(r){return r.app;}),datasets:[{label:'% Desperdicio',data:wpSorted.map(function(r){return r.pct;}),backgroundColor:wpSorted.map(function(r){return r.pct>50?'rgba(239,68,68,.8)':r.pct>25?'rgba(245,158,11,.8)':'rgba(16,185,129,.8)';}),borderRadius:4}]},
-      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw+'%';}}}},scales:{x:{min:0,max:100,ticks:{color:'#64748b',callback:function(v){return v+'%';}},grid:{color:'rgba(31,45,66,.4)'}},y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,45,66,.4)'}}}}
-    });
-  }
-}
-
-// ── LICENSE CARDS ──
-function renderLicCards(){
-  var grid=document.getElementById('licSummaryGrid');
-  var empty=document.getElementById('licEmpty');
-  if(!grid) return;
-
-  var colsAll2=colsGoogle.concat(allApps);
-  if(!colsAll2.length){try{colsAll2=JSON.parse(localStorage.getItem('gobernanza_apps')||'[]');}catch(e){colsAll2=[];}}
-
-  var rows=colsAll2.map(getCostForApp).filter(function(r){return r&&(r.costTotal>0||r.sinDatos===false);});
-
-  var search=(document.getElementById('licSearch')||{}).value||'';
-  if(search) rows=rows.filter(function(r){return r.app.toLowerCase().indexOf(search.toLowerCase())>=0;});
-
-  var sort=(document.getElementById('licSort')||{}).value||'cost_desc';
-  rows.sort(function(a,b){
-    if(sort==='cost_asc') return (a.costTotal||0)-(b.costTotal||0);
-    if(sort==='waste_desc') return (b.costInactivos||0)-(a.costInactivos||0);
-    if(sort==='users_desc') return (Number(b.totalUsers)||0)-(Number(a.totalUsers)||0);
-    if(sort==='alpha') return a.app.localeCompare(b.app);
-    return (b.costTotal||0)-(a.costTotal||0);
-  });
-
-  if(!rows.length){grid.innerHTML='';empty.style.display='block';return;}
-  empty.style.display='none';
-
-  grid.innerHTML=rows.map(function(r){
-    var icon=ICONS[r.app]||'📦';
-    var tot=Number(r.totalUsers)||0;
-    var act=Number(r.activosUsers)||0;
-    var inact=Number(r.inactivosUsers)||0;
-    var actPct=tot>0?Math.round(act/tot*100):0;
-    var inactPct=tot>0?Math.round(inact/tot*100):0;
-    var waste=r.costTotal>0&&inact>0?((r.costInactivos/r.costTotal)*100).toFixed(0):0;
-    var hasCost=r.costTotal>0;
-
-    return '<div class="lic-card">'
-      +'<div class="lic-card-header">'
-      +'<div class="lic-app-icon">'+icon+'</div>'
-      +'<div class="lic-app-name" title="'+r.app+'">'+r.app+'</div>'
-      +(waste>0?'<div class="lic-waste-tag">'+waste+'% waste</div>':'')
-      +'</div>'
-      +(r.sinDatos?'<div style="font-size:12px;color:#475569;font-style:italic">Genera la matriz para ver usuarios</div>':(
-        '<div class="lic-bar-row">'
-        +'<div class="lic-bar-label">Activos</div>'
-        +'<div class="lic-bar-track"><div class="lic-bar-fill-act" style="width:'+actPct+'%"></div></div>'
-        +'<div class="lic-bar-val" style="color:#10b981">'+act+'</div>'
-        +'</div>'
-        +'<div class="lic-bar-row">'
-        +'<div class="lic-bar-label">Inactivos</div>'
-        +'<div class="lic-bar-track"><div class="lic-bar-fill-inact" style="width:'+inactPct+'%"></div></div>'
-        +'<div class="lic-bar-val" style="color:#ef4444">'+inact+'</div>'
-        +'</div>'
-        +'<div class="lic-bar-row">'
-        +'<div class="lic-bar-label">Total</div>'
-        +'<div class="lic-bar-track"><div class="lic-bar-fill-act" style="width:100%;background:linear-gradient(90deg,#334155,#475569)"></div></div>'
-        +'<div class="lic-bar-val" style="color:#94a3b8">'+tot+'</div>'
-        +'</div>'
-      ))
-      +'<div class="lic-cost-row">'
-      +(hasCost
-        ?'<div><div class="lic-cost-monthly">'+fmtCurrency(r.costTotal,r.currency)+'/mes</div><div class="lic-cost-annual">'+fmtCurrency(r.costTotal*12,r.currency)+'/año</div></div>'
-        +'<div style="text-align:right"><div style="font-size:10px;color:#64748b">Precio/lic</div><div style="font-size:12px;font-family:monospace;color:#94a3b8">'+fmtCurrency(r.pricePerUser,r.currency)+'</div></div>'
-        :'<div class="lic-no-cost">Sin costo configurado</div>'
-      )
-      +'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function filterLicCards(){ renderLicCards(); }
-
-// ── EXPORT PDF ──
-function exportCostPDF(){
-  if(typeof window.jspdf==='undefined'){alert('Cargando librería PDF, intenta de nuevo en un momento.');return;}
-  var {jsPDF}=window.jspdf;
-  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-
-  var now=new Date();
-  var dateStr=now.toLocaleDateString('es-PE',{year:'numeric',month:'long',day:'numeric'});
-
-  // Header
-  doc.setFillColor(17,24,39);
-  doc.rect(0,0,297,20,'F');
-  doc.setTextColor(0,212,255);
-  doc.setFontSize(14);doc.setFont('helvetica','bold');
-  doc.text('Xertica.ai — Reporte de Costos de Licencias',14,13);
-  doc.setTextColor(100,116,139);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text('Generado: '+dateStr,250,13,'right');
-
-  // KPIs row
-  doc.setFillColor(26,34,53);
-  doc.rect(0,22,297,16,'F');
-  var kpis=[
-    ['Costo Mensual Total',document.getElementById('kpiTotal').textContent],
-    ['Costo Activos',document.getElementById('kpiActivos').textContent],
-    ['Costo Desperdiciado',document.getElementById('kpiWasted').textContent],
-    ['% Desperdicio',document.getElementById('kpiPct').textContent],
-    ['Proyección Anual',document.getElementById('kpiAnual').textContent],
-    ['Ahorro Potencial/año',document.getElementById('kpiSaving').textContent]
-  ];
-  kpis.forEach(function(k,i){
-    var x=14+i*46;
-    doc.setTextColor(100,116,139);doc.setFontSize(7);doc.setFont('helvetica','normal');
-    doc.text(k[0],x,27);
-    doc.setTextColor(226,232,240);doc.setFontSize(9);doc.setFont('helvetica','bold');
-    doc.text(k[1],x,34);
-  });
-
-  // Table
-  var colsAll2=colsGoogle.concat(allApps);
-  if(!colsAll2.length){try{colsAll2=JSON.parse(localStorage.getItem('gobernanza_apps')||'[]');}catch(e){colsAll2=[];}}
-  var rows=colsAll2.map(getCostForApp).filter(function(r){return r&&!r.sinDatos&&r.costTotal>0;});
-
-  var tableRows=rows.map(function(r){
-    var pct=r.costTotal>0?(r.costInactivos/r.costTotal*100).toFixed(1)+'%':'0%';
-    return[r.app,String(r.totalUsers),fmtCurrency(r.pricePerUser,r.currency)+'/mes',fmtCurrency(r.costActivos,r.currency),fmtCurrency(r.costInactivos,r.currency),pct,fmtCurrency(r.costTotal,r.currency),fmtCurrency(r.costTotal*12,r.currency)];
-  });
-
-  var usdRows=rows.filter(function(r){return r.currency==='USD';});
-  var sumAct=usdRows.reduce(function(s,r){return s+(r.costActivos||0);},0);
-  var sumInact=usdRows.reduce(function(s,r){return s+(r.costInactivos||0);},0);
-  var sumTot=usdRows.reduce(function(s,r){return s+(r.costTotal||0);},0);
-  tableRows.push(['TOTAL','','',''+fmtCurrency(sumAct,'USD'),''+fmtCurrency(sumInact,'USD'),'',''+fmtCurrency(sumTot,'USD'),''+fmtCurrency(sumTot*12,'USD')]);
-
-  doc.autoTable({
-    startY:42,
-    head:[['Aplicación','Usuarios','Precio/lic/mes','Costo Activos','Costo Inactivos','% Waste','Total Mes','Total Año']],
-    body:tableRows,
-    theme:'grid',
-    headStyles:{fillColor:[26,34,53],textColor:[100,116,139],fontStyle:'bold',fontSize:8},
-    bodyStyles:{fillColor:[17,24,39],textColor:[226,232,240],fontSize:8},
-    alternateRowStyles:{fillColor:[20,28,45]},
-    foot:[tableRows[tableRows.length-1]],
-    footStyles:{fillColor:[26,34,53],textColor:[0,212,255],fontStyle:'bold',fontSize:8},
-    columnStyles:{0:{cellWidth:50},7:{textColor:[16,185,129]}},
-    styles:{overflow:'linebreak',cellPadding:3},
-    margin:{left:14,right:14}
-  });
-
-  doc.save('xertica_costos_licencias_'+now.toISOString().slice(0,10)+'.pdf');
-}
-
-// ── EXPORT XLSX ──
-function exportCostXLSX(){
-  if(typeof XLSX==='undefined'){alert('Error: librería Excel no disponible');return;}
-  var colsAll2=colsGoogle.concat(allApps);
-  if(!colsAll2.length){try{colsAll2=JSON.parse(localStorage.getItem('gobernanza_apps')||'[]');}catch(e){colsAll2=[];}}
-  var rows=colsAll2.map(getCostForApp).filter(function(r){return r&&!r.sinDatos;});
-
-  var wb=XLSX.utils.book_new();
-
-  // Sheet 1: Resumen Costos
-  var ws1Data=[['Aplicación','Usuarios Total','Usuarios Activos','Usuarios Inactivos','Precio/Lic/Mes','Costo Activos','Costo Inactivos','Total Mes','Total Año','% Desperdicio','Moneda']];
-  rows.forEach(function(r){
-    var pct=r.costTotal>0?+((r.costInactivos/r.costTotal)*100).toFixed(1):0;
-    ws1Data.push([r.app,r.totalUsers,r.activosUsers,r.inactivosUsers,r.pricePerUser,r.costActivos,r.costInactivos,r.costTotal,r.costTotal*12,pct,r.currency]);
-  });
-  var usdR=rows.filter(function(r){return r.currency==='USD'&&!r.sinDatos;});
-  var sA=usdR.reduce(function(s,r){return s+(r.costActivos||0);},0);
-  var sI=usdR.reduce(function(s,r){return s+(r.costInactivos||0);},0);
-  var sT=usdR.reduce(function(s,r){return s+(r.costTotal||0);},0);
-  var wastePctTot=sT>0?+((sI/sT)*100).toFixed(1):0;
-  ws1Data.push(['TOTAL (USD)','','','','',sA.toFixed(2),sI.toFixed(2),sT.toFixed(2),(sT*12).toFixed(2),wastePctTot,'USD']);
-  var ws1=XLSX.utils.aoa_to_sheet(ws1Data);
-  ws1['!cols']=[{wch:30},{wch:14},{wch:16},{wch:18},{wch:16},{wch:16},{wch:18},{wch:14},{wch:14},{wch:14},{wch:10}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Costos por Aplicación');
-
-  // Sheet 2: KPI Summary
-  var ws2Data=[
-    ['KPI','Valor'],
-    ['Costo Mensual Total (USD)',document.getElementById('kpiTotal').textContent],
-    ['Costo Usuarios Activos',document.getElementById('kpiActivos').textContent],
-    ['Costo Desperdiciado',document.getElementById('kpiWasted').textContent],
-    ['% Desperdicio',document.getElementById('kpiPct').textContent],
-    ['Proyección Anual',document.getElementById('kpiAnual').textContent],
-    ['Ahorro Potencial/Año',document.getElementById('kpiSaving').textContent],
-    ['Fecha exportación',new Date().toLocaleDateString('es-PE')]
-  ];
-  var ws2=XLSX.utils.aoa_to_sheet(ws2Data);
-  ws2['!cols']=[{wch:30},{wch:20}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Resumen KPI');
-
-  XLSX.writeFile(wb,'xertica_costos_licencias_'+new Date().toISOString().slice(0,10)+'.xlsx');
-}
-
-// ── EXPORT CSV (Costos) ──
-function exportCostCSV(){
-  var colsAll2=colsGoogle.concat(allApps);
-  if(!colsAll2.length){try{colsAll2=JSON.parse(localStorage.getItem('gobernanza_apps')||'[]');}catch(e){colsAll2=[];}}
-  var rows=colsAll2.map(getCostForApp).filter(function(r){return r&&!r.sinDatos;});
-  var header='Aplicación,Usuarios Total,Usuarios Activos,Usuarios Inactivos,Precio/Lic/Mes,Costo Activos,Costo Inactivos,Total Mes,Total Año,% Desperdicio,Moneda\n';
-  var body=rows.map(function(r){
-    var pct=r.costTotal>0?+((r.costInactivos/r.costTotal)*100).toFixed(1):0;
-    return[r.app,r.totalUsers,r.activosUsers,r.inactivosUsers,r.pricePerUser.toFixed(2),(r.costActivos||0).toFixed(2),(r.costInactivos||0).toFixed(2),(r.costTotal||0).toFixed(2),(r.costTotal*12||0).toFixed(2),pct,r.currency].map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(',');
-  }).join('\n');
-  var b=new Blob([header+body],{type:'text/csv;charset=utf-8;'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(b);
-  a.download='xertica_costos_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 
 loadCosts();
