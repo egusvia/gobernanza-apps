@@ -665,8 +665,11 @@ var CONTRASENA_VALIDA = "Xertica2026";
       <input type="text" id="naFile" placeholder="Ej: Netsuite_users.xlsx">
     </div>
     <div id="naErr" style="font-size:12px;color:#ef4444;min-height:18px;display:none"></div>
+    <div style="background:#0f1928;border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:4px;font-size:11px;color:#64748b;line-height:1.6">
+      💾 Al crear el aplicativo se descargará automáticamente el <strong style="color:#00d4ff">HTML actualizado</strong> con el nuevo app ya incluido. Reemplaza el archivo anterior con ese nuevo para que persista en cualquier equipo.
+    </div>
     <div class="nabtn-row">
-      <button class="nabtn-ok" onclick="confirmNewApp()">✅ Crear Aplicativo</button>
+      <button class="nabtn-ok" onclick="confirmNewApp()">✅ Crear y Descargar HTML</button>
       <button class="nabtn-cancel" onclick="closeNewApp()">Cancelar</button>
     </div>
   </div>
@@ -891,41 +894,76 @@ function confirmNewApp(){
   if(!/\.xlsx?$/i.test(file)){ err.textContent='El archivo debe terminar en .xlsx o .xls'; err.style.display='block'; return; }
   if(APPS[name]){ err.textContent='Ya existe un aplicativo con ese nombre.'; err.style.display='block'; return; }
 
-  // Register in APPS, ICONS, APPS_DEFAULT
+  // 1. Registrar en memoria para la sesión actual
   APPS[name] = file;
   ICONS[name] = icon;
   APPS_DEFAULT[name] = file;
 
-  // Persist custom apps to localStorage
-  try {
-    var custom = JSON.parse(localStorage.getItem('gobernanza_custom_apps')||'{}');
-    custom[name] = {file: file, icon: icon};
-    localStorage.setItem('gobernanza_custom_apps', JSON.stringify(custom));
-    // Also persist to app_names
-    var names = JSON.parse(localStorage.getItem('gobernanza_app_names')||'{}');
-    names[name] = file;
-    localStorage.setItem('gobernanza_app_names', JSON.stringify(names));
-  } catch(e){}
-
-  // Rebuild list
+  // 2. Reconstruir lista en pantalla
   initAppsList();
 
-  // If we have a pre-loaded file, auto-assign it
+  // 3. Si vino con archivo pre-cargado (desde carga masiva), asignarlo
   if(_naFile){
     markApp(name, _naFile);
-    // Remove from unmatched banner
     var banner = document.getElementById('unmatchedBanner');
-    var rows = banner.querySelectorAll('.unm-file');
-    rows.forEach(function(row){
-      if(row.querySelector('.unm-fname').textContent.indexOf(_naFile.name) >= 0){
-        row.remove();
-      }
+    banner.querySelectorAll('.unm-file').forEach(function(row){
+      if(row.querySelector('.unm-fname').textContent.indexOf(_naFile.name) >= 0) row.remove();
     });
     if(banner.querySelectorAll('.unm-file').length === 0) banner.style.display='none';
   }
 
   closeNewApp();
-  log('✅ Aplicativo "'+name+'" creado y registrado.', 'lok');
+  log('✅ Aplicativo "'+name+'" creado — generando HTML actualizado...', 'lok');
+
+  // 4. Inyectar el nuevo app directo en el código fuente del HTML y descargar
+  //    Leemos el HTML actual desde el DOM (document.documentElement.outerHTML)
+  //    y parcheamos las dos líneas clave: APPS_DEFAULT e ICONS.
+  setTimeout(function(){
+    try {
+      var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+      // ── Parchear APPS_DEFAULT: insertar antes del cierre "}" de la última entrada ──
+      // El marcador único es la última app hardcoded: "Netsuite":"Netsuite_users.xlsx"
+      // (o cualquier última entrada actual). Buscamos el cierre del objeto APPS_DEFAULT.
+      // Estrategia: encontrar el bloque APPS_DEFAULT completo y añadir la nueva entrada.
+      var appsEntry = ',"'+name+'":"'+file+'"';
+      var iconsEntry = ',"'+name+'":"'+icon+'"';
+
+      // Parchear APPS_DEFAULT — añadir justo antes del cierre `\n};`
+      // El objeto termina con la última entry seguida de `\n};`
+      html = html.replace(
+        /("Netsuite":"Netsuite_users\.xlsx")([\s\S]*?)\n\};(\s*\n\/\/ Load custom)/,
+        function(m, last, middle, after){
+          // Si ya existe esta app (por sesiones anteriores parchadas), no duplicar
+          if(m.indexOf('"'+name+'"') >= 0) return m;
+          return last + appsEntry + middle + '\n};' + after;
+        }
+      );
+
+      // Parchear ICONS — añadir justo antes del cierre `\n};`
+      html = html.replace(
+        /("Netsuite":"🧾")([\s\S]*?)\n\};(\s*\n\/\/ ── STATE)/,
+        function(m, last, middle, after){
+          if(m.indexOf('"'+name+'"') >= 0) return m;
+          return last + iconsEntry + middle + '\n};' + after;
+        }
+      );
+
+      // ── Descargar el HTML actualizado ──
+      var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      // Nombre de archivo con fecha
+      var hoy = new Date().toISOString().slice(0,10).replace(/-/g,'');
+      a.download = 'Matriz_de_aplicaciones_'+hoy+'.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      log('💾 HTML actualizado descargado — reemplaza el archivo anterior con este nuevo.', 'lok');
+    } catch(e){
+      log('⚠️ No se pudo generar el HTML actualizado: '+e.message, 'lwarn');
+    }
+  }, 200);
 }
 
 document.getElementById('newAppModal').onclick=function(e){ if(e.target===this) closeNewApp(); };
@@ -943,14 +981,6 @@ function markApp(app, file){
 function initAppsList(){
   var list=document.getElementById('alist');
   list.innerHTML='';
-
-  // Load custom apps from localStorage
-  try {
-    var custom=JSON.parse(localStorage.getItem('gobernanza_custom_apps')||'{}');
-    Object.keys(custom).forEach(function(name){
-      if(!APPS[name]){ APPS[name]=custom[name].file; ICONS[name]=custom[name].icon||'📦'; APPS_DEFAULT[name]=custom[name].file; }
-    });
-  } catch(e){}
 
   Object.keys(APPS).forEach(function(app){
     var d=document.createElement('div');
