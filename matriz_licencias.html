@@ -360,7 +360,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
     <div class="ucard">
       <h3>📋 BambooRH — Base de empleados</h3>
       <div class="fdrop" id="dropBamboo">
-        <input type="file" accept=".xlsx,.xls" id="fileBamboo">
+        <input type="file" accept=".xlsx,.xls,.csv" id="fileBamboo">
         <div class="ficon">📊</div>
         <p>Arrastra o haz clic para subir</p>
         <p style="font-size:11px;margin-top:4px">BambooRH_users.xlsx</p>
@@ -370,10 +370,10 @@ var CONTRASENA_VALIDA = "Xertica2026";
     <div class="ucard">
       <h3>🔑 Licencias Google Workspace</h3>
       <div class="fdrop" id="dropLic">
-        <input type="file" accept=".xlsx,.xls" id="fileLic">
+        <input type="file" accept=".xlsx,.xls,.csv" id="fileLic">
         <div class="ficon">🗝️</div>
         <p>Arrastra o haz clic para subir</p>
-        <p style="font-size:11px;margin-top:4px;color:#10b981">✓ Acepta Control_licencias.xlsx <strong>o</strong> User_Download (exportado de Workspace)</p>
+        <p style="font-size:11px;margin-top:4px;color:#10b981">✓ Acepta Control_licencias.xlsx/csv <strong>o</strong> User_Download (exportado de Workspace)</p>
         <div class="fn" id="nameLic"></div>
       </div>
     </div>
@@ -388,7 +388,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
         <button onclick="openCfg()" style="background:#1a2235;border:1px solid #1f2d42;color:#64748b;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s" onmouseover="this.style.borderColor='#00d4ff';this.style.color='#00d4ff'" onmouseout="this.style.borderColor='#1f2d42';this.style.color='#64748b'">⚙️ Nombres de archivos</button>
         <label style="display:flex;align-items:center;gap:8px;background:#1a2235;border:1px solid #f59e0b;color:#f59e0b;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:1px;transition:all .2s" onmouseover="this.style.background='rgba(245,158,11,.1)'" onmouseout="this.style.background='#1a2235'">
           📂 CARGA MASIVA
-          <input type="file" accept=".xlsx,.xls" multiple id="fileMasivo" style="display:none">
+          <input type="file" accept=".xlsx,.xls,.csv" multiple id="fileMasivo" style="display:none">
         </label>
       </div>
     </div>
@@ -531,7 +531,7 @@ var CONTRASENA_VALIDA = "Xertica2026";
       <button onclick="closeCfg()" style="background:#1a2235;border:1px solid #1f2d42;color:#e2e8f0;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
     </div>
     <div style="background:#1a2235;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#f59e0b;border:1px solid rgba(245,158,11,.2)">
-      💡 El nombre debe incluir la extensión: <code style="background:#111827;padding:2px 6px;border-radius:3px">.xlsx</code> o <code style="background:#111827;padding:2px 6px;border-radius:3px">.xls</code>. La carga masiva también usa estos nombres para reconocer archivos automáticamente.
+      💡 El nombre debe incluir la extensión: <code style="background:#111827;padding:2px 6px;border-radius:3px">.xlsx</code>, <code style="background:#111827;padding:2px 6px;border-radius:3px">.xls</code> o <code style="background:#111827;padding:2px 6px;border-radius:3px">.csv</code>. La carga masiva también usa estos nombres para reconocer archivos automáticamente.
     </div>
     <div id="cfgList"></div>
     <div style="display:flex;gap:10px;margin-top:20px">
@@ -891,7 +891,7 @@ function confirmNewApp(){
   var err  = document.getElementById('naErr');
   if(!name){ err.textContent='El nombre es obligatorio.'; err.style.display='block'; return; }
   if(!file){ err.textContent='El nombre de archivo es obligatorio.'; err.style.display='block'; return; }
-  if(!/\.xlsx?$/i.test(file)){ err.textContent='El archivo debe terminar en .xlsx o .xls'; err.style.display='block'; return; }
+  if(!/\.(xlsx?|csv)$/i.test(file)){ err.textContent='El archivo debe terminar en .xlsx, .xls o .csv'; err.style.display='block'; return; }
   if(APPS[name]){ err.textContent='Ya existe un aplicativo con ese nombre.'; err.style.display='block'; return; }
 
   // 1. Registrar en memoria para la sesión actual
@@ -985,7 +985,7 @@ function initAppsList(){
   Object.keys(APPS).forEach(function(app){
     var d=document.createElement('div');
     d.className='aitem'; d.id='ai_'+app;
-    d.innerHTML='<div class="aicon">'+(ICONS[app]||'📦')+'</div><div class="aname">'+app+'</div><div class="ast" id="as_'+app+'">sin cargar</div><input type="file" accept=".xlsx,.xls">';
+    d.innerHTML='<div class="aicon">'+(ICONS[app]||'📦')+'</div><div class="aname">'+app+'</div><div class="ast" id="as_'+app+'">sin cargar</div><input type="file" accept=".xlsx,.xls,.csv">';
     d.querySelector('input').onchange=function(){
       var f=this.files[0]; if(!f)return;
       markApp(app,f);
@@ -1052,7 +1052,7 @@ initAppsList();
         found=Object.keys(APPS).find(function(app){
           var appNorm=app.toLowerCase().replace(/[^a-z0-9]/g,'');
           var fileNorm=fnamel.replace(/[^a-z0-9]/g,'');
-          return fileNorm.indexOf(appNorm)>=0||appNorm.indexOf(fileNorm.replace('.xlsx','').replace('.xls',''))>=0;
+          return fileNorm.indexOf(appNorm)>=0||appNorm.indexOf(fileNorm.replace('.xlsx','').replace('.xls','').replace('.csv',''))>=0;
         });
       }
 
@@ -1167,19 +1167,29 @@ function transformUserDownload(rows){
   return transformed;
 }
 
-// ── EXCEL UTILS ──
+// ── EXCEL / CSV UTILS ──
 function readXL(file){
   return new Promise(function(res,rej){
     var r=new FileReader();
+    var isCsv=/\.csv$/i.test(file.name);
     r.onload=function(e){
       try{
-        var wb=XLSX.read(e.target.result,{type:'array'});
+        var wb;
+        if(isCsv){
+          wb=XLSX.read(e.target.result,{type:'string',raw:false});
+        }else{
+          wb=XLSX.read(e.target.result,{type:'array'});
+        }
         var ws=wb.Sheets[wb.SheetNames[0]];
         res(XLSX.utils.sheet_to_json(ws,{defval:''}));
       }catch(err){rej(err)}
     };
     r.onerror=rej;
-    r.readAsArrayBuffer(file);
+    if(isCsv){
+      r.readAsText(file,'UTF-8');
+    }else{
+      r.readAsArrayBuffer(file);
+    }
   });
 }
 function emailCol(rows){
